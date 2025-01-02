@@ -8,14 +8,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class ItemController extends Controller
 {
     // Show the list of items
     public function index()
-    {
-        $items = Item::all();  // Fetch all items
-        return response()->json($items);
+    {   
+        // Fetch all items
+        // $items = Item::all();  
+        // return response()->json($items);
+
+        // TODO: implement with json data
+        return Inertia::render('Items');
     }
 
     public function create()
