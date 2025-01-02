@@ -26,10 +26,17 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 //API endpoints
-// TODO: prideti middleware nuo robotu ir admin
-    Route::get('/items', [ItemController::class, 'index']); // gauti prekių sąrašą.
-    Route::get('/items/{id}', [ItemController::class, 'show']); // gauti konkrečios prekės informaciją.
-    Route::post('/items', [ItemController::class, 'store']); // pridėti naują prekę (admin).
-    Route::put('/items/{id}', [ItemController::class, 'update']); // redaguoti prekę (admin).
-    Route::delete('/items/{id}', [ItemController::class, 'destroy']); // ištrinti prekę (admin).
-    Route::get('/redirect/{item_id}', [ItemController::class, 'redirect']); // registruoti nukreipimą ir nukreipti vartotoją.
+
+// Public routes: No authentication required (requests 60 per minute)
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/items', [ItemController::class, 'index']);                 // gauti prekių sąrašą
+    Route::get('/items/{id}', [ItemController::class, 'show']);             // gauti konkrečios prekės informaciją
+    Route::get('/redirect/{item_id}', [ItemController::class, 'redirect']); // registruoti nukreipimą ir nukreipti vartotoją
+});
+
+// Admin routes: Requires authentication and has a rate limit (requests 10 per minute)
+Route::middleware(['auth:api', 'throttle:10,1'])->group(function () {
+    Route::post('/items', [ItemController::class, 'store']);                // pridėti naują prekę (admin)
+    Route::put('/items/{id}', [ItemController::class, 'update']);           // redaguoti prekę (admin)
+    Route::delete('/items/{id}', [ItemController::class, 'destroy']);       // ištrinti prekę (admin)
+});
