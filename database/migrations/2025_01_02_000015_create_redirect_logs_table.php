@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('user_agent')->nullable();                 // Naršyklės informacija
             $table->string('referrer', 255)->nullable();            // Šaltinio URL
             $table->string('unique_hash', 255)->unique();           // Unikalus įrašo hash
+            $table->timestamps();                                   // created_at and updated_at
 
             // Foreign key constraint
             $table->foreign('item_id')->references('id')->on('items')->onDelete('cascade');

@@ -3,6 +3,7 @@
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -35,8 +36,14 @@ Route::middleware('throttle:60,1')->group(function () {
 });
 
 // Admin routes: Requires authentication and has a rate limit (requests 10 per minute)
-Route::middleware(['auth:api', 'throttle:10,1'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
     Route::post('/items', [ItemController::class, 'store']);                // pridėti naują prekę (admin)
     Route::put('/items/{id}', [ItemController::class, 'update']);           // redaguoti prekę (admin)
     Route::delete('/items/{id}', [ItemController::class, 'destroy']);       // ištrinti prekę (admin)
+});
+
+
+// To test out API (delete later)
+Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
+    return response()->json($request->user());
 });
