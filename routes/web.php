@@ -63,6 +63,7 @@ Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 
 });
 
+// TODO: prekes page
 // TODO: block register page
 
 // To test out API (delete later)
