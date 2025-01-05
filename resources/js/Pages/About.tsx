@@ -1,11 +1,13 @@
 import Footer from '@/Components/MyComponents/Footer';
 import Navbar from '@/Components/MyComponents/Navbar';
+import Layout from '@/Layouts/Layout';
 import { Head } from '@inertiajs/react';
 
 export default function EditPage() {
     return (
         <>
-            <Head title="Apie" />
+        <Layout>
+            <Head title="Apie mus" />
             <div className="flex flex-col min-h-screen">
                 {/* Adjusted spacing to bring the content higher */}
                 <div className="flex-grow container mx-auto px-4 pb-32 flex items-center justify-center">
@@ -29,6 +31,7 @@ export default function EditPage() {
                     </div>
                 </div>
             </div>
+        </Layout>
         </>
     );
 }

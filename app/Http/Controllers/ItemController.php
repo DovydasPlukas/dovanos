@@ -12,16 +12,23 @@ use Inertia\Inertia;
 
 class ItemController extends Controller
 {
-    // Show the list of items
     public function index()
-    {   
-        // Fetch all items
-        // $items = Item::all();  
-        // return response()->json($items);
-
-        // TODO: implement with json data
-        return Inertia::render('Items');
+    {
+        // Fetch items from the database
+        $items = Item::all();
+    
+        // Check if the request expects a JSON response
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+            ]);
+        }
+    
+        // Render the Inertia page for the website
+        return Inertia::render('Items', ['items' => $items]);
     }
+    
 
     public function create()
     {
@@ -58,11 +65,18 @@ class ItemController extends Controller
     // Show a single item by its ID
     public function show($id)
     {
-        $item = Item::find($id);
-        if (!$item) {
-            return response()->json(['message' => 'Item not found'], 404);
-        }
-        return response()->json($item);
+        $item = Item::findOrFail($id);
+
+        if (request()->expectsJson()) {
+            // Return JSON for API clients like Postman
+            return response()->json([
+                'success' => true,
+                'data' => $item,
+            ]);
+    }
+
+    // Return Inertia response for the website
+    return inertia('ItemDetail', ['item' => $item]);
     }
 
     public function edit(string $id)

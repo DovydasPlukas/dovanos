@@ -63,9 +63,9 @@ Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 
 });
 
-// TODO: prekes page
 // TODO: block register page
 
+//API routes
 // To test out API (delete later)
 Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
     return response()->json($request->user());
