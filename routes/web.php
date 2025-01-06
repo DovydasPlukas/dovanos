@@ -3,6 +3,7 @@
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,9 +57,8 @@ Route::get('/apie', function () {
 Route::get('/kontaktai', function () {
     return Inertia::render('Contact'); 
 });
-Route::get('/wishlist', function () {
-    return Inertia::render('Wishlist'); 
-});
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+
 Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 
 });

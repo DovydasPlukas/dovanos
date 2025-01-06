@@ -102,6 +102,19 @@ export default function Login({
                     </PrimaryButton>
                 </div>
             </form>
+
+            {/* Not Registered Link */}
+            <div className="mt-4 text-center">
+                <p className="text-sm text-gray-600">
+                    Not registered?{" "}
+                    <Link
+                        href="/register"
+                        className="text-indigo-600 hover:underline"
+                    >
+                        Register
+                    </Link>
+                </p>
+            </div>
         </GuestLayout>
     );
 }
