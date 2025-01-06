@@ -6,6 +6,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,10 +15,21 @@ Route::get('/', function () {
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
     ]);
-});
+})->name('index');
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $user = Auth::user(); // Get the authenticated user
+    
+    // Check if the user is an admin
+    if (!$user || !$user->is_admin) {
+        // Redirect non-admin users to the 404 error page (or any other fallback route)
+        return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+    }
+
+    // Render the Dashboard if the user is an admin
+    return Inertia::render('Dashboard', [
+        'user' => $user, // Pass the user object with is_admin to the frontend
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -63,10 +75,13 @@ Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 
 });
 
-// TODO: block register page
-
 //API routes
 // To test out API (delete later)
 Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
     return response()->json($request->user());
+});
+
+// Fallback route
+Route::fallback(function () {
+    return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
 });
