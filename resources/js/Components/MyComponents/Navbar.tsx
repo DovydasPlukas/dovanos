@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, usePage, router } from "@inertiajs/react";
-import { Heart, Gift, User, LogOut } from "lucide-react";
+import { Heart, Gift, User, LogOut, Settings } from "lucide-react";
 import {
   HoverCard,
   HoverCardContent,
@@ -8,8 +8,17 @@ import {
 } from "@/Components/ui/hover-card";
 import SearchBar from "@/Components/MyComponents/SearchBar";
 
+// Define the User type to include is_admin property
+interface User {
+  is_admin: number; // Define is_admin
+  email: string;
+}
+
 export default function Navbar() {
   const { auth } = usePage().props;
+
+  // Type assertion to handle the missing property
+  const user = auth.user as unknown as User; // First assert as unknown, then cast to User
 
   const handleLogout = () => {
     router.post(route("logout"), {}, { preserveScroll: true });
@@ -31,18 +40,22 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Wishlist & User Dropdown */}
+          {/* Wishlist/Settings & User Dropdown */}
           <div className="flex items-center space-x-4">
-            {auth.user && (
+            {user && (
               <Link
-                href="/wishlist"
+                href={user.is_admin === 1 ? "/dashboard" : "/wishlist"} // If admin, link to /dashboard; else, /wishlist
                 className="text-gray-600 hover:text-gray-800"
               >
-                <Heart className="h-6 w-6" />
+                {user.is_admin === 1 ? (
+                  <Settings className="h-6 w-6" /> // Gear icon for admin
+                ) : (
+                  <Heart className="h-6 w-6" /> // Heart icon for regular user
+                )}
               </Link>
             )}
 
-            {auth.user ? (
+            {user ? (
               <div className="flex items-center space-x-4">
                 {/* User Profile with HoverCard */}
                 <HoverCard>
@@ -53,7 +66,7 @@ export default function Navbar() {
                   </HoverCardTrigger>
                   <HoverCardContent className="p-4 bg-white border shadow-lg rounded-lg w-48">
                     <div className="text-sm text-gray-700">
-                      Email: {auth.user.email}
+                      Email: {user.email}
                     </div>
                     <button
                       onClick={handleLogout}
