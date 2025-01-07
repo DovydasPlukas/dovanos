@@ -75,6 +75,9 @@ Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
 Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 
 });
+// Searchbar
+Route::get('/api/search', [ItemController::class, 'search']);
+
 
 //API routes
 // To test out API (delete later)

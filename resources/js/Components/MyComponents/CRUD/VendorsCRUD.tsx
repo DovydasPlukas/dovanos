@@ -1,120 +1,205 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/Components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Label } from '@/Components/ui/label';
 
 interface Vendor {
   id: number;
   name: string;
-  email: string;
-  phone: string;
+  contact_details: string;
+  website: string;
 }
 
-export default function VendorsCrud() {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [newVendor, setNewVendor] = useState<Omit<Vendor, 'id'>>({ name: '', email: '', phone: '' });
-  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+interface VendorFormData {
+  name: string;
+  contact_details: string;
+  website: string;
+}
 
-  useEffect(() => {
-    fetchVendors();
-  }, []);
+const VendorsCrud: React.FC = () => {
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [newVendor, setNewVendor] = useState<VendorFormData>({
+    name: '',
+    contact_details: '',
+    website: '',
+  });
+  const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchVendors = async () => {
     try {
-      const response = await axios.get('/vendors');
-      setVendors(response.data);
+      const response = await axios.get<{ data: Vendor[] }>('/vendors');
+      setVendors(response.data.data);
     } catch (error) {
       console.error('Error fetching vendors:', error);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (editingVendor) {
-      setEditingVendor({ ...editingVendor, [name]: value });
-    } else {
-      setNewVendor({ ...newVendor, [name]: value });
-    }
-  };
+  useEffect(() => {
+    fetchVendors();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (editingVendor) {
-        await axios.put(`/vendors/${editingVendor.id}`, editingVendor);
-      } else {
-        await axios.post('/vendors', newVendor);
-      }
+      await axios.post('/vendors', newVendor);
       fetchVendors();
-      setNewVendor({ name: '', email: '', phone: '' });
-      setEditingVendor(null);
+      setNewVendor({ name: '', contact_details: '', website: '' });
     } catch (error) {
-      console.error('Error saving vendor:', error);
+      console.error('Error adding vendor:', error);
     }
   };
 
-  const handleEdit = (vendor: Vendor) => {
-    setEditingVendor(vendor);
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVendor) return;
+
+    try {
+      await axios.put(`/vendors/${editingVendor.id}`, editingVendor);
+      fetchVendors();
+      setEditingVendor(null);
+    } catch (error) {
+      console.error('Error updating vendor:', error);
+    }
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      await axios.delete(`/vendors/${id}`);
-      fetchVendors();
-    } catch (error) {
-      console.error('Error deleting vendor:', error);
+    if (window.confirm('Are you sure you want to delete this vendor?')) {
+      try {
+        await axios.delete(`/vendors/${id}`);
+        fetchVendors();
+      } catch (error) {
+        console.error('Error deleting vendor:', error);
+      }
     }
   };
 
+  const filteredVendors = vendors.filter(vendor => 
+    vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vendor.id.toString().includes(searchTerm)
+  );
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Manage Vendors</h2>
-      <form onSubmit={handleSubmit} className="mb-4 space-y-4">
-        <Input
-          type="text"
-          name="name"
-          value={editingVendor ? editingVendor.name : newVendor.name}
-          onChange={handleInputChange}
-          placeholder="Vendor Name"
-          required
-        />
-        <Input
-          type="email"
-          name="email"
-          value={editingVendor ? editingVendor.email : newVendor.email}
-          onChange={handleInputChange}
-          placeholder="Email"
-          required
-        />
-        <Input
-          type="tel"
-          name="phone"
-          value={editingVendor ? editingVendor.phone : newVendor.phone}
-          onChange={handleInputChange}
-          placeholder="Phone"
-          required
-        />
-        <Button type="submit">{editingVendor ? 'Update Vendor' : 'Add Vendor'}</Button>
-      </form>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Vendors CRUD</h1>
+      
+      <Input
+        type="text"
+        placeholder="Search by name or ID"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-4"
+      />
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button className="mb-4">Add New Vendor</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Vendor</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={newVendor.name}
+                onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_details">Contact Details</Label>
+              <Input
+                id="contact_details"
+                value={newVendor.contact_details}
+                onChange={(e) => setNewVendor({ ...newVendor, contact_details: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                value={newVendor.website}
+                onChange={(e) => setNewVendor({ ...newVendor, website: e.target.value })}
+                required
+              />
+            </div>
+            <Button type="submit">Add Vendor</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableCell>ID</TableCell>
+            <TableCell>Name</TableCell>
+            <TableCell>Contact Details</TableCell>
+            <TableCell>Website</TableCell>
+            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {vendors.map((vendor) => (
+          {filteredVendors.map((vendor) => (
             <TableRow key={vendor.id}>
+              <TableCell>{vendor.id}</TableCell>
               <TableCell>{vendor.name}</TableCell>
-              <TableCell>{vendor.email}</TableCell>
-              <TableCell>{vendor.phone}</TableCell>
+              <TableCell>{vendor.contact_details}</TableCell>
+              <TableCell>{vendor.website}</TableCell>
               <TableCell>
-                <Button onClick={() => handleEdit(vendor)} className="mr-2">Edit</Button>
-                <Button onClick={() => handleDelete(vendor.id)} variant="destructive">Delete</Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="mr-2" onClick={() => setEditingVendor(vendor)}>
+                      Edit
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Vendor</DialogTitle>
+                    </DialogHeader>
+                    {editingVendor && (
+                      <form onSubmit={handleUpdate} className="space-y-4">
+                        <div>
+                          <Label htmlFor="edit-name">Name</Label>
+                          <Input
+                            id="edit-name"
+                            value={editingVendor.name}
+                            onChange={(e) => setEditingVendor({ ...editingVendor, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-contact_details">Contact Details</Label>
+                          <Input
+                            id="edit-contact_details"
+                            value={editingVendor.contact_details}
+                            onChange={(e) => setEditingVendor({ ...editingVendor, contact_details: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="edit-website">Website</Label>
+                          <Input
+                            id="edit-website"
+                            value={editingVendor.website}
+                            onChange={(e) => setEditingVendor({ ...editingVendor, website: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <Button type="submit">Update Vendor</Button>
+                      </form>
+                    )}
+                  </DialogContent>
+                </Dialog>
+                <Button variant="destructive" onClick={() => handleDelete(vendor.id)}>
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -122,5 +207,5 @@ export default function VendorsCrud() {
       </Table>
     </div>
   );
-}
+};export default VendorsCrud;
 

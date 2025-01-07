@@ -17,4 +17,10 @@ class Item extends Model
         'vendor_id',
         'product_url',
     ];
+    
+    // connect to the vendor table
+    public function vendor()
+{
+    return $this->belongsTo(Vendor::class);
+}
 }
