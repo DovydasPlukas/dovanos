@@ -19,20 +19,19 @@ Route::get('/', function () {
     ]);
 })->name('index');
 
-Route::get('/dashboard', function () {
-    $user = Auth::user(); // Get the authenticated user
-    
-    // Check if the user is an admin
+Route::get('/dashboard', function (Request $request) {
+    $user = Auth::user();
+
     if (!$user || !$user->is_admin) {
-        // Redirect non-admin users to the 404 error page (or any other fallback route)
         return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
     }
 
-    // Render the Dashboard if the user is an admin
     return Inertia::render('Dashboard', [
-        'user' => $user, // Pass the user object with is_admin to the frontend
+        'user' => $user,
+        'initialTab' => $request->query('tab', 'dashboard'), // Default to 'dashboard' if no tab is provided
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
