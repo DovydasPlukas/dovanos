@@ -3,7 +3,8 @@ import axios from 'axios';
 import Layout from '@/Layouts/Layout';
 import { Head, Link } from '@inertiajs/react'; 
 import { Heart } from 'lucide-react'; 
-import { Button } from '@/Components/ui/button'; 
+import { Button } from '@/components/ui/button'; 
+import { Pagination } from '@/Components/ui/pagination';
 
 interface Item {
   id: number;
@@ -20,6 +21,7 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
   const [minPrice, setMinPrice] = useState<number | ''>(''); // State for minimum price
   const [maxPrice, setMaxPrice] = useState<number | ''>(''); // State for maximum price
   const [searchQuery, setSearchQuery] = useState<string>(''); // State for search query
+  const [currentPage, setCurrentPage] = useState<number>(1); // State for current page
 
   useEffect(() => {
     if (!items || items.length === 0) {
@@ -63,6 +65,12 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
 
     return occasionFilter && priceFilter && searchFilter;
   });
+
+  // Calculate the total number of pages
+  const totalPages = Math.ceil(filteredItems.length / 10);
+
+  // Get the items for the current page
+  const paginatedItems = filteredItems.slice((currentPage - 1) * 10, currentPage * 10);
 
   return (
     <Layout>
@@ -135,38 +143,46 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {filteredItems.length === 0 ? (
-                <p>No items available.</p> // Show this if no filtered items
-              ) : (
-                filteredItems.map(item => (
-                  <Link key={item.id} href={`/items/${item.id}`} as="button">
-                    <div className="p-4 border rounded-lg shadow-md hover:shadow-lg cursor-pointer">
-                      {/* Image */}
-                      {item.image_url && (
-                        <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover mb-4" />
-                      )}
-                      <h2 className="text-xl font-semibold">{item.name}</h2>
-                      <p>{item.description}</p>
-                      <p className="text-lg font-semibold">{item.price} €</p>
-                      <div className="flex items-center justify-between mt-4">
-                        {/* Button*/}
-                        <a href="#" onClick={(e) => e.preventDefault()}>
-                          <Button className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full">
-                            Apsilankyti
-                          </Button>
-                        </a>
-                        {/* Heart*/}
-                        <Heart
-                          className="text-black hover:text-red-600 cursor-pointer"
-                          onClick={(e) => e.stopPropagation()} // Prevent card click from triggering
-                        />
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {paginatedItems.length === 0 ? (
+                  <p>No items available.</p> // Show this if no filtered items
+                ) : (
+                  paginatedItems.map(item => (
+                    <Link key={item.id} href={`/items/${item.id}`} as="button">
+                      <div className="p-4 border rounded-lg shadow-md hover:shadow-lg cursor-pointer">
+                        {/* Image */}
+                        {item.image_url && (
+                          <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover mb-4" />
+                        )}
+                        <h2 className="text-xl font-semibold">{item.name}</h2>
+                        <p>{item.description}</p>
+                        <p className="text-lg font-semibold">{item.price} €</p>
+                        <div className="flex items-center justify-between mt-4">
+                          {/* Button*/}
+                          <a href="#" onClick={(e) => e.preventDefault()}>
+                            <Button className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full">
+                              Apsilankyti
+                            </Button>
+                          </a>
+                          {/* Heart*/}
+                          <Heart
+                            className="text-black hover:text-red-600 cursor-pointer"
+                            onClick={(e) => e.stopPropagation()} // Prevent card click from triggering
+                          />
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           )}
         </div>
       </div>
