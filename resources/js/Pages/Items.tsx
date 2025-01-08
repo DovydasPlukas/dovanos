@@ -78,23 +78,23 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
       <div className="container mx-auto p-4 h-screen flex">
         {/* Left side for filters */}
         <div className="w-1/4 p-4">
-          <h2 className="text-lg font-semibold mb-4">Filters</h2>
+          <h2 className="text-lg font-semibold mb-4">Filtrai</h2>
 
           {/* Search Bar */}
           <div className="mb-4">
-            <label className="block mb-2">Search by title</label>
+            <label className="block mb-2">Ieškoti pagal pavadinimą</label>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
+              placeholder="Ieškoti..."
               className="w-full p-2 border rounded"
             />
           </div>
 
           {/* Occasion Filters */}
           <div className="mb-4">
-            <h3 className="font-semibold mb-2">Occasion</h3>
+            <h3 className="font-semibold mb-2">Proga</h3>
             <label className="block mb-2">
               <input 
                 type="checkbox" 
@@ -111,13 +111,13 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
                 onChange={(e) => handleCheckboxChange('Kaledos', e.target.checked)} 
                 className="mr-2"
               />
-              Kaledos
+              Kalėdos
             </label>
           </div>
 
           {/* Price Range Filters */}
           <div className="mb-4">
-            <h3 className="font-semibold mb-2">Price Range</h3>
+            <h3 className="font-semibold mb-2">Kainų diapazonas</h3>
             <div className="flex space-x-4">
               <input
                 type="number"
@@ -139,14 +139,14 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
 
         {/* Right side for items */}
         <div className="w-3/4 p-4">
-          <h1 className="text-2xl font-bold mb-4">Items</h1>
+          <h1 className="text-2xl font-bold mb-4">Dovanos</h1>
           {loading ? (
-            <p>Loading...</p>
+            <p>Kraunasi...</p>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {paginatedItems.length === 0 ? (
-                  <p>No items available.</p> // Show this if no filtered items
+                  <p>Dovanų nėra.</p> // Show this if no filtered items
                 ) : (
                   paginatedItems.map(item => (
                     <Link key={item.id} href={`/items/${item.id}`} as="button">

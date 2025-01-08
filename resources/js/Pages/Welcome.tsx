@@ -16,7 +16,7 @@ const Welcome: React.FC = () => {
   return (
     <Layout>
       <Head title="Sveiki" />
-      <div className="min-h-screen flex flex-col justify-center items-center -mt-32">
+      <div className="min-h-screen flex flex-col justify-center items-center lg:-mt-32">
         <h1 className="text-4xl font-semibold text-center mb-4">Sveiki atvykę į Dovanų idėjų platformą!</h1>
         <p className="text-lg text-center mb-6">
           Atraskite tobulas dovanų idėjas, bet kokiai progai. Naršykite mūsų kolekciją ir įkvėpkite save.
@@ -25,7 +25,7 @@ const Welcome: React.FC = () => {
           <Button>Peržiūrėti prekes</Button>
         </Link>
         {/* Placeholder for Occasions */}
-        <div className="mt-8 grid grid-cols-5 gap-4 w-full max-w-5xl">
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full max-w-5xl">
           {occasions.map((occasion, index) => (
             <Link
               href={occasion.link}
