@@ -1,7 +1,7 @@
 import React from 'react';
 import Layout from '@/Layouts/Layout';
 import { Button } from '@/components/ui/button';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Cake, TreePine, Heart, Home, Torus } from 'lucide-react'; 
 
 const occasions = [
@@ -15,6 +15,7 @@ const occasions = [
 const Welcome: React.FC = () => {
   return (
     <Layout>
+      <Head title="Sveiki" />
       <div className="min-h-screen flex flex-col justify-center items-center -mt-32">
         <h1 className="text-4xl font-semibold text-center mb-4">Sveiki atvykę į Dovanų idėjų platformą!</h1>
         <p className="text-lg text-center mb-6">

@@ -97,7 +97,7 @@ const ItemsCrud: React.FC = () => {
     });
     if (imageFile) {
       formData.append('image_url', imageFile);
-    } else if (newItem.image_url) {
+    } else if (newItem.image_url && newItem.image_url.startsWith('http')) {
       formData.append('image_url', newItem.image_url);
     }
 
@@ -133,13 +133,16 @@ const ItemsCrud: React.FC = () => {
     });
     if (imageFile) {
       formData.append('image_url', imageFile);
-    } else if (editingItem.image_url) {
+    } else if (editingItem.image_url && editingItem.image_url.startsWith('http')) {
       formData.append('image_url', editingItem.image_url);
     }
 
     try {
-      await axios.put(`/items/${editingItem.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await axios.post(`/items/${editingItem.id}`, formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'X-HTTP-Method-Override': 'PUT'
+        }
       });
       fetchItems();
       setEditingItem(null);
@@ -317,126 +320,9 @@ const ItemsCrud: React.FC = () => {
               <TableCell>{item.price}</TableCell>
               <TableCell>{item.vendor.name}</TableCell>
               <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="mr-2" onClick={() => handleEditClick(item)}>
-                      Edit
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Item</DialogTitle>
-                    </DialogHeader>
-                    {editingItem && (
-                      <form onSubmit={handleUpdate} className="space-y-4">
-                        <div>
-                          <Label htmlFor="edit-name">Name</Label>
-                          <Input
-                            id="edit-name"
-                            value={editingItem.name}
-                            onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                            required
-                          />
-                          {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-description">Description</Label>
-                          <Input
-                            id="edit-description"
-                            value={editingItem.description}
-                            onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                            required
-                          />
-                          {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-price">Price</Label>
-                          <Input
-                            id="edit-price"
-                            type="number"
-                            value={editingItem.price}
-                            onChange={(e) => setEditingItem({ ...editingItem, price: Number(e.target.value) })}
-                            required
-                          />
-                          {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-vendor_name">Vendor</Label>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-full">
-                                {editingItem.vendor.name}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                              <Command>
-                                <CommandInput placeholder="Search vendors..." />
-                                <CommandList>
-                                  <CommandEmpty>No vendors found.</CommandEmpty>
-                                  <CommandGroup>
-                                    {vendors.map((vendor) => (
-                                      <CommandItem
-                                        key={vendor.id}
-                                        onSelect={() => {
-                                          setEditingItem({ ...editingItem, vendor: { ...editingItem.vendor, name: vendor.name } });
-                                        }}
-                                      >
-                                        {vendor.name}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
-                          {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-product_url">Product URL</Label>
-                          <Input
-                            id="edit-product_url"
-                            value={editingItem.product_url}
-                            onChange={(e) => setEditingItem({ ...editingItem, product_url: e.target.value })}
-                            required
-                          />
-                          {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-image">Image</Label>
-                          {editingItem.image_url && (
-                            <div>
-                              <img
-                                src={editingItem.image_url.startsWith('http') ? editingItem.image_url : `/storage/${editingItem.image_url}`}
-                                alt={editingItem.name}
-                                className="w-16 h-16 object-cover"
-                              />
-                              <Button variant="outline" onClick={() => setEditingItem({ ...editingItem, image_url: '' })}>
-                                Change Image
-                              </Button>
-                            </div>
-                          )}
-                          {!editingItem.image_url && (
-                            <>
-                              <Input
-                                id="edit-image"
-                                type="file"
-                                onChange={handleImageChange}
-                              />
-                              <Input
-                                id="edit-image_url"
-                                placeholder="Or enter image URL"
-                                value={editingItem.image_url}
-                                onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                              />
-                            </>
-                          )}
-                          {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
-                        </div>
-                        <Button type="submit">Update Item</Button>
-                      </form>
-                    )}
-                  </DialogContent>
-                </Dialog>
+                <Button variant="outline" className="mr-2" onClick={() => handleEditClick(item)}>
+                  Edit
+                </Button>
                 <Button variant="destructive" onClick={() => handleDelete(item.id)}>
                   Delete
                 </Button>
@@ -445,6 +331,122 @@ const ItemsCrud: React.FC = () => {
           ))}
         </TableBody>
       </Table>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+          </DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingItem.name}
+                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                  required
+                />
+                {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Input
+                  id="edit-description"
+                  value={editingItem.description}
+                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  required
+                />
+                {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
+              </div>
+              <div>
+                <Label htmlFor="edit-price">Price</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  value={editingItem.price}
+                  onChange={(e) => setEditingItem({ ...editingItem, price: Number(e.target.value) })}
+                  required
+                />
+                {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
+              </div>
+              <div>
+                <Label htmlFor="edit-vendor_name">Vendor</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      {editingItem.vendor.name}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search vendors..." />
+                      <CommandList>
+                        <CommandEmpty>No vendors found.</CommandEmpty>
+                        <CommandGroup>
+                          {vendors.map((vendor) => (
+                            <CommandItem
+                              key={vendor.id}
+                              onSelect={() => {
+                                setEditingItem({ ...editingItem, vendor: { ...editingItem.vendor, name: vendor.name } });
+                              }}
+                            >
+                              {vendor.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
+              </div>
+              <div>
+                <Label htmlFor="edit-product_url">Product URL</Label>
+                <Input
+                  id="edit-product_url"
+                  value={editingItem.product_url}
+                  onChange={(e) => setEditingItem({ ...editingItem, product_url: e.target.value })}
+                  required
+                />
+                {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
+              </div>
+              <div>
+                <Label htmlFor="edit-image">Image</Label>
+                {editingItem.image_url && (
+                  <div>
+                    <img
+                      src={editingItem.image_url.startsWith('http') ? editingItem.image_url : `/storage/${editingItem.image_url}`}
+                      alt={editingItem.name}
+                      className="w-16 h-16 object-cover"
+                    />
+                    <Button variant="outline" onClick={() => setEditingItem({ ...editingItem, image_url: '' })}>
+                      Change Image
+                    </Button>
+                  </div>
+                )}
+                {!editingItem.image_url && (
+                  <>
+                    <Input
+                      id="edit-image"
+                      type="file"
+                      onChange={handleImageChange}
+                    />
+                    <Input
+                      id="edit-image_url"
+                      placeholder="Or enter image URL"
+                      value={editingItem.image_url}
+                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                    />
+                  </>
+                )}
+                {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
+              </div>
+              <Button type="submit">Update Item</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

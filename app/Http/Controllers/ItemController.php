@@ -39,7 +39,7 @@ class ItemController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric',
-            'image_url' => 'nullable|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            'image_url' => 'nullable|string|max:2048', // Allow URLs as strings
             'vendor_id' => 'required|exists:vendors,id',
             'product_url' => 'required|string',
         ]);
@@ -53,10 +53,12 @@ class ItemController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Handle image upload
+        // Handle image upload or URL
         $imagePath = $request->image_url;
         if ($request->hasFile('image_url')) {
             $imagePath = $request->file('image_url')->store('images/products', 'public');
+        } elseif (filter_var($request->image_url, FILTER_VALIDATE_URL)) {
+            $imagePath = $request->image_url;
         }
 
         // Create a new item
@@ -110,7 +112,7 @@ class ItemController extends Controller
             'price' => 'sometimes|numeric',
             'description' => 'nullable|string',
             'vendor_id' => 'sometimes|exists:vendors,id',
-            'image_url' => 'nullable|image|mimes:jpg,png,jpeg,gif,svg|max:2048',
+            'image_url' => 'nullable|string|max:2048', // Allow URLs as strings
         ]);
 
         // Return validation errors if validation fails
@@ -128,6 +130,8 @@ class ItemController extends Controller
             // Store the new image
             $imagePath = $request->file('image_url')->store('images/products', 'public');
             $item->image_url = $imagePath;
+        } elseif (filter_var($request->image_url, FILTER_VALIDATE_URL)) {
+            $item->image_url = $request->image_url;
         } else if ($request->image_url) {
             $item->image_url = $request->image_url;
         }

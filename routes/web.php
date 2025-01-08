@@ -50,8 +50,8 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/redirect/{item_id}', [ItemController::class, 'redirect']); // registruoti nukreipimą ir nukreipti vartotoją
 });
 
-// Admin routes (requests 10 per minute)
-Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
+// Admin routes (requests 100 per minute)
+Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::post('/items', [ItemController::class, 'store']);                // pridėti naują prekę (admin)
     Route::put('/items/{id}', [ItemController::class, 'update']);           // redaguoti prekę (admin)
     Route::delete('/items/{id}', [ItemController::class, 'destroy']);       // ištrinti prekę (admin)
@@ -59,7 +59,7 @@ Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
 
 
 // Vendor routes
-Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::resource('vendors', VendorController::class);
 });
 

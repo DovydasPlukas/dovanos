@@ -28,6 +28,8 @@ const VendorsCrud: React.FC = () => {
   });
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const fetchVendors = async () => {
     try {
@@ -48,6 +50,7 @@ const VendorsCrud: React.FC = () => {
       await axios.post('/vendors', newVendor);
       fetchVendors();
       setNewVendor({ name: '', contact_details: '', website: '' });
+      setIsAddDialogOpen(false);
     } catch (error) {
       console.error('Error adding vendor:', error);
     }
@@ -61,6 +64,7 @@ const VendorsCrud: React.FC = () => {
       await axios.put(`/vendors/${editingVendor.id}`, editingVendor);
       fetchVendors();
       setEditingVendor(null);
+      setIsEditDialogOpen(false);
     } catch (error) {
       console.error('Error updating vendor:', error);
     }
@@ -94,9 +98,9 @@ const VendorsCrud: React.FC = () => {
         className="mb-4"
       />
 
-      <Dialog>
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-4">Add New Vendor</Button>
+          <Button className="mb-4" onClick={() => setIsAddDialogOpen(true)}>Add New Vendor</Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -153,50 +157,9 @@ const VendorsCrud: React.FC = () => {
               <TableCell>{vendor.contact_details}</TableCell>
               <TableCell>{vendor.website}</TableCell>
               <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="mr-2" onClick={() => setEditingVendor(vendor)}>
-                      Edit
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Vendor</DialogTitle>
-                    </DialogHeader>
-                    {editingVendor && (
-                      <form onSubmit={handleUpdate} className="space-y-4">
-                        <div>
-                          <Label htmlFor="edit-name">Name</Label>
-                          <Input
-                            id="edit-name"
-                            value={editingVendor.name}
-                            onChange={(e) => setEditingVendor({ ...editingVendor, name: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-contact_details">Contact Details</Label>
-                          <Input
-                            id="edit-contact_details"
-                            value={editingVendor.contact_details}
-                            onChange={(e) => setEditingVendor({ ...editingVendor, contact_details: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-website">Website</Label>
-                          <Input
-                            id="edit-website"
-                            value={editingVendor.website}
-                            onChange={(e) => setEditingVendor({ ...editingVendor, website: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <Button type="submit">Update Vendor</Button>
-                      </form>
-                    )}
-                  </DialogContent>
-                </Dialog>
+                <Button variant="outline" className="mr-2" onClick={() => { setEditingVendor(vendor); setIsEditDialogOpen(true); }}>
+                  Edit
+                </Button>
                 <Button variant="destructive" onClick={() => handleDelete(vendor.id)}>
                   Delete
                 </Button>
@@ -205,7 +168,49 @@ const VendorsCrud: React.FC = () => {
           ))}
         </TableBody>
       </Table>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Vendor</DialogTitle>
+          </DialogHeader>
+          {editingVendor && (
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingVendor.name}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-contact_details">Contact Details</Label>
+                <Input
+                  id="edit-contact_details"
+                  value={editingVendor.contact_details}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, contact_details: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-website">Website</Label>
+                <Input
+                  id="edit-website"
+                  value={editingVendor.website}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, website: e.target.value })}
+                  required
+                />
+              </div>
+              <Button type="submit">Update Vendor</Button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};export default VendorsCrud;
+};
+
+export default VendorsCrud;
 
