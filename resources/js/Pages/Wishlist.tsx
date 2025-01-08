@@ -3,7 +3,7 @@ import axios from 'axios';
 import Layout from '@/Layouts/Layout';
 import { Head, Link } from '@inertiajs/react'; 
 import { Heart } from 'lucide-react'; 
-import { Button } from '@/Components/ui/button';
+import { Button } from '@/components/ui/button';
 
 interface Item {
   id: number;

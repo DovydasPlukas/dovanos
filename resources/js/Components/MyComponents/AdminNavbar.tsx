@@ -48,7 +48,7 @@ export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
                       href={item.href}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
                         activeTab === item.name.toLowerCase()
-                          ? 'bg-primary text-white hover:bg-primary hover:text-white'
+                          ? 'bg-primary text-white hover:bg-black hover:text-white'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => setActiveTab(item.name.toLowerCase())}

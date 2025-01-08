@@ -3,7 +3,7 @@ import Layout from '@/Layouts/Layout';
 import { Head } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import { Card } from '@/Components/ui/card';
-import { Button } from '@/Components/ui/button'; 
+import { Button } from '@/components/ui/button'; 
 import { Label } from '@/Components/ui/label';
 
 interface Item {
