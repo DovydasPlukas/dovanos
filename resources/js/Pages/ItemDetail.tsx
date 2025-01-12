@@ -3,8 +3,8 @@ import Layout from '@/Layouts/Layout';
 import { Head } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import { Card } from '@/Components/ui/card';
-import { Button } from '@/components/ui/button'; 
 import { Label } from '@/Components/ui/label';
+import RedirectButton from '@/Components/MyComponents/RedirectButton';
 
 interface Item {
   id: number;
@@ -12,6 +12,7 @@ interface Item {
   description: string;
   price: string;
   image_url?: string;
+  product_url: string;
   vendor_id: number;
 }
 
@@ -67,14 +68,11 @@ const ItemDetail: React.FC<{ item: Item }> = ({ item }) => {
             {/* Price and Vendor Card */}
             <Card className="p-4 rounded-lg shadow-md flex flex-col justify-between space-y-4 w-72 mx-auto">
               <p className="text-xl font-semibold">Price: {item.price} €</p>
-              {/* TODO: add vendor name */}
               <p className="text-md text-gray-600">Vendor ID: {item.vendor_id}</p>
               <div className="flex items-center justify-center space-x-2 w-full">
-               {/* TODO: button logic */} 
-                <Button className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full">
-                  Apsilankyti
-                </Button>
-                {/* TODO: wishlist logic */}
+                {/* Apsilankyti Button */}
+                <RedirectButton itemId={item.id} productUrl={item.product_url} className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full" />
+                {/* Wishlist logic */}
                 <Heart className="text-black hover:text-red-600 cursor-pointer" />
               </div>
             </Card>

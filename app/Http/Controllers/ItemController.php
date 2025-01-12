@@ -163,22 +163,28 @@ class ItemController extends Controller
         return response()->json(['message' => 'Item deleted successfully']);
     }
 
-    // Redirect the user and log the redirect (for tracking)
+    // Redirect to the product URL and log the redirect
     public function redirect($item_id)
     {
+        // Find the item
         $item = Item::find($item_id);
         if (!$item) {
             return response()->json(['message' => 'Item not found'], 404);
         }
-
-        // Hash
-        $unique_hash = md5($item->id . request()->ip() . request()->userAgent() . request()->headers->get('referer'));
-        
-        $existingLog = RedirectLog::where('unique_hash', $unique_hash)->first();
+    
+        // Generate the unique hash based on IP, User-Agent, and timestamp
+        $unique_hash = md5(request()->ip() . request()->userAgent() . now()->timestamp);
+    
+        // Check if there is a recent log with the same unique hash (e.g., within the last 5 seconds)
+        $existingLog = RedirectLog::where('unique_hash', $unique_hash)
+                                   ->where('timestamp', '>', now()->subSeconds(5))
+                                   ->first();
+    
         if ($existingLog) {
-            return response()->json(['message' => 'Redirect already logged'], 200);
+            return response()->json(['message' => 'Duplicate redirect attempt'], 200);
         }
-
+    
+        // Save the redirect log into the database
         RedirectLog::create([
             'item_id' => $item_id,
             'timestamp' => now(),
@@ -187,15 +193,16 @@ class ItemController extends Controller
             'referrer' => request()->headers->get('referer'),
             'unique_hash' => $unique_hash
         ]);
-
-        return redirect($item->product_url);
+    
+        // Return the unique_hash to frontend for constructing the URL
+        return response()->json(['unique_hash' => $unique_hash]);
     }
-
+    
     // searchbar
     public function search(Request $request)
-{
-    $query = $request->input('q');
-    $items = Item::where('name', 'like', "%{$query}%")->get();
-    return response()->json($items);
-}
+    {
+        $query = $request->input('q');
+        $items = Item::where('name', 'like', "%{$query}%")->get();
+        return response()->json($items);
+    }
 }

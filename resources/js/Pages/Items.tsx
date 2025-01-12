@@ -5,6 +5,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Heart } from 'lucide-react'; 
 import { Button } from '@/components/ui/button'; 
 import { Pagination } from '@/Components/ui/pagination';
+import RedirectButton from '@/Components/MyComponents/RedirectButton';
 
 interface Item {
   id: number;
@@ -13,6 +14,7 @@ interface Item {
   price: string;
   image_url?: string;
   occasion?: string[];
+  product_url: string;
 }
 
 const Items: React.FC<{ items: Item[] }> = ({ items }) => {
@@ -159,13 +161,9 @@ const Items: React.FC<{ items: Item[] }> = ({ items }) => {
                         <p>{item.description}</p>
                         <p className="text-lg font-semibold">{item.price} €</p>
                         <div className="flex items-center justify-between mt-4">
-                          {/* Button*/}
-                          <a href="#" onClick={(e) => e.preventDefault()}>
-                            <Button className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full">
-                              Apsilankyti
-                            </Button>
-                          </a>
-                          {/* Heart*/}
+                          {/* RedirectButton */}
+                          <RedirectButton itemId={item.id} productUrl={item.product_url} className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black" />
+                          {/* Heart */}
                           <Heart
                             className="text-black hover:text-red-600 cursor-pointer"
                             onClick={(e) => e.stopPropagation()} // Prevent card click from triggering
