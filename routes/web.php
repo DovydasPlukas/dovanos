@@ -4,6 +4,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\XMLController;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,9 @@ Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::post('/items', [ItemController::class, 'store']);                // pridėti naują prekę (admin)
     Route::put('/items/{id}', [ItemController::class, 'update']);           // redaguoti prekę (admin)
     Route::delete('/items/{id}', [ItemController::class, 'destroy']);       // ištrinti prekę (admin)
+
+    // XML upload route
+    Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
 });
 
 

@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ItemsCrud from '@/Components/MyComponents/CRUD/ItemCRUD';
 import VendorsCrud from '@/Components/MyComponents/CRUD/VendorsCRUD';
+import XMLCrud from '@/Components/MyComponents/CRUD/XML_CRUD';
 
 interface DashboardProps {
   initialTab?: string;
@@ -21,6 +22,8 @@ export default function Dashboard({ initialTab = 'dashboard' }: DashboardProps) 
         return <ItemsCrud />;
       case 'vendors':
         return <VendorsCrud />;
+        case 'xml':
+          return <XMLCrud />;
       default:
         return (
           <div className="text-center">
