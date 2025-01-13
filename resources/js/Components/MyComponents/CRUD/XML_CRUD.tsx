@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { parseString } from 'xml2js';
+import { XMLParser } from 'fast-xml-parser';
 import {
   Table,
   TableBody,
@@ -57,22 +57,27 @@ const XMLCrud: React.FC = () => {
     reader.onload = (e) => {
       const text = e.target?.result;
       if (typeof text === 'string') {
-        parseString(text, (err, result) => {
-          if (err) {
-            console.error('Error parsing XML:', err);
-            setAlert({ type: 'error', message: 'Error parsing XML file. Please check the file format.' });
-            return;
-          }
-          const products = result?.products?.product?.map((item: any) => ({
-            id: item.$.id,
-            name: item.title[0],
-            price: item.price[0],
-            description: item.description ? item.description[0] : '',
-            image_url: item.image_url ? item.image_url[0] : '',
-            product_url: item.product_url ? item.product_url[0] : '',
+        const parser = new XMLParser();
+        const result = parser.parse(text);
+
+        if (result?.products?.product) {
+          const products = Array.isArray(result.products.product)
+            ? result.products.product
+            : [result.products.product];
+
+          const parsedProducts = products.map((item: any) => ({
+            id: item?.id || '',
+            name: item?.title || '',
+            price: item?.price || '',
+            description: item?.description || '',
+            image_url: item?.image_url || '',
+            product_url: item?.product_url || '',
           }));
-          setXmlData(products || []);
-        });
+
+          setXmlData(parsedProducts);
+        } else {
+          setAlert({ type: 'error', message: 'No products found in the XML file.' });
+        }
       }
     };
     reader.readAsText(file);
@@ -82,6 +87,8 @@ const XMLCrud: React.FC = () => {
     const file = e.target.files ? e.target.files[0] : null;
     setSelectedFile(file);
     if (file) {
+      // Clear previous data when a new file is selected
+      setXmlData([]);
       parseXML(file);
     }
   };
@@ -95,20 +102,33 @@ const XMLCrud: React.FC = () => {
       setAlert({ type: 'error', message: 'Please select a file and a vendor before submitting.' });
       return;
     }
-
+  
     setIsLoading(true);
+  
+    // Clear preview data immediately
+    setXmlData([]);
+    
     const formData = new FormData();
     formData.append('xml_file', selectedFile);
     formData.append('vendor_id', selectedVendor);
-
+  
     try {
       const response = await axios.post('/upload-xml', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+  
       setAlert({ type: 'success', message: 'XML data successfully submitted to the database!' });
-      setXmlData(response.data.data);
+  
+      // Update xmlData with the newly submitted data
+      const newXmlData = response.data.data;
+      if (Array.isArray(newXmlData) && newXmlData.length > 0) {
+        setXmlData(newXmlData); // Add the newly submitted products
+      } else {
+        setXmlData([]); // If no new data is received, clear the existing data
+      }
+  
     } catch (error) {
       console.error('Error submitting XML data:', error);
       setAlert({ type: 'error', message: 'Error submitting XML data. Please try again.' });
@@ -197,4 +217,3 @@ const XMLCrud: React.FC = () => {
 };
 
 export default XMLCrud;
-
