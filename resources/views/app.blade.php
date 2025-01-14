@@ -6,6 +6,12 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon for Light Mode -->
+        <link rel="icon" href="{{ asset('gift-icon-light.png') }}" type="image/png">
+
+        <!-- Favicon for Dark Mode -->
+        <link rel="icon" href="{{ asset('gift-icon-dark.png') }}" type="image/png" media="(prefers-color-scheme: dark)">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

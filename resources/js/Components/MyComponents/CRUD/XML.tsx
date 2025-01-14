@@ -30,7 +30,7 @@ interface Vendor {
   name: string;
 }
 
-const XMLCrud: React.FC = () => {
+const XML: React.FC = () => {
   const [xmlData, setXmlData] = useState<Product[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -216,4 +216,4 @@ const XMLCrud: React.FC = () => {
   );
 };
 
-export default XMLCrud;
+export default XML;
