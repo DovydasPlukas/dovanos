@@ -19,6 +19,8 @@ import {
   PopoverTrigger,
 } from "@/Components/ui/popover";
 import { Alert, AlertTitle, AlertDescription } from '@/Components/ui/alert';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/Components/ui/toaster";
 
 interface Item {
   id: number;
@@ -42,7 +44,10 @@ interface ItemFormData {
 }
 
 const ItemsCrud: React.FC = () => {
+  const { toast } = useToast();
   const [items, setItems] = useState<Item[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
   const [newItem, setNewItem] = useState<ItemFormData>({
     name: '',
     description: '',
@@ -67,6 +72,10 @@ const ItemsCrud: React.FC = () => {
       setItems(response.data.data);
     } catch (error) {
       console.error('Error fetching items:', error);
+      toast({
+        variant: "destructive",
+        description: "Failed to fetch items",
+      });
     }
   };
 
@@ -109,14 +118,23 @@ const ItemsCrud: React.FC = () => {
       setNewItem({ name: '', description: '', price: 0, vendor_id: 0, product_url: '', image_url: '' });
       setImageFile(null);
       setErrors({});
-      setAlert({ type: 'added', message: 'Item added successfully!' });
       setIsAddDialogOpen(false);
-      setTimeout(() => setAlert(null), 3000);
+      toast({
+        description: "Item added successfully",
+      });
     } catch (error: any) {
       if (error.response && error.response.data.errors) {
         setErrors(error.response.data.errors);
+        toast({
+          variant: "destructive",
+          description: "Please check the form for errors",
+        });
       } else {
         console.error('Error adding item:', error);
+        toast({
+          variant: "destructive",
+          description: "Failed to add item",
+        });
       }
     }
   };
@@ -148,14 +166,23 @@ const ItemsCrud: React.FC = () => {
       setEditingItem(null);
       setImageFile(null);
       setErrors({});
-      setAlert({ type: 'edited', message: 'Item edited successfully!' });
       setIsEditDialogOpen(false);
-      setTimeout(() => setAlert(null), 3000);
+      toast({
+        description: "Item updated successfully",
+      });
     } catch (error: any) {
       if (error.response && error.response.data.errors) {
         setErrors(error.response.data.errors);
+        toast({
+          variant: "destructive",
+          description: "Please check the form for errors",
+        });
       } else {
         console.error('Error updating item:', error);
+        toast({
+          variant: "destructive",
+          description: "Failed to update item",
+        });
       }
     }
   };
@@ -165,8 +192,15 @@ const ItemsCrud: React.FC = () => {
       try {
         await axios.delete(`/items/${id}`);
         fetchItems();
+        toast({
+          description: "Item deleted successfully",
+        });
       } catch (error) {
         console.error('Error deleting item:', error);
+        toast({
+          variant: "destructive",
+          description: "Failed to delete item",
+        });
       }
     }
   };
@@ -176,206 +210,89 @@ const ItemsCrud: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
+  const onSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.id.toString().includes(searchTerm)
   );
 
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Items CRUD</h1>
-      
-      {alert && (
-        <Alert variant="default" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <AlertTitle>{alert.type === 'added' ? 'Success' : 'Updated'}</AlertTitle>
-          <AlertDescription>{alert.message}</AlertDescription>
-        </Alert>
-      )}
+    <>
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Items CRUD</h1>
+        
+        {alert && (
+          <Alert variant="default" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+            <AlertTitle>{alert.type === 'added' ? 'Success' : 'Updated'}</AlertTitle>
+            <AlertDescription>{alert.message}</AlertDescription>
+          </Alert>
+        )}
 
-      <Input
-        type="text"
-        placeholder="Search by name or ID"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="mb-4"
-      />
+        <Input
+          type="text"
+          placeholder="Search by name or ID"
+          value={searchTerm}
+          onChange={onSearch}
+          className="mb-4"
+        />
 
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4" onClick={() => setIsAddDialogOpen(true)}>Add New Item</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Item</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={newItem.name}
-                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                required
-              />
-              {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                value={newItem.description}
-                onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                required
-              />
-              {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
-            </div>
-            <div>
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                type="number"
-                value={newItem.price}
-                onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
-                required
-              />
-              {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
-            </div>
-            <div>
-              <Label htmlFor="vendor_id">Vendor</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    {selectedVendor ? selectedVendor.name : 'Select Vendor'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search vendors..." />
-                    <CommandList>
-                      <CommandEmpty>No vendors found.</CommandEmpty>
-                      <CommandGroup>
-                        {vendors.map((vendor) => (
-                          <CommandItem
-                            key={vendor.id}
-                            onSelect={() => {
-                              setSelectedVendor(vendor);
-                              setNewItem({ ...newItem, vendor_id: vendor.id });
-                            }}
-                          >
-                            {vendor.name}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
-            </div>
-            <div>
-              <Label htmlFor="product_url">Product URL</Label>
-              <Input
-                id="product_url"
-                value={newItem.product_url}
-                onChange={(e) => setNewItem({ ...newItem, product_url: e.target.value })}
-                required
-              />
-              {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
-            </div>
-            <div>
-              <Label htmlFor="image">Image</Label>
-              <Input
-                id="image"
-                type="file"
-                onChange={handleImageChange}
-              />
-              <Input
-                id="image_url"
-                placeholder="Or enter image URL"
-                value={newItem.image_url}
-                onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-              />
-              {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
-            </div>
-            <Button type="submit">Add Item</Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>Price</TableCell>
-            <TableCell>Vendor</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredItems.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.id}</TableCell>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.price}</TableCell>
-              <TableCell>{item.vendor.name}</TableCell>
-              <TableCell>
-                <Button variant="outline" className="mr-2" onClick={() => handleEditClick(item)}>
-                  Edit
-                </Button>
-                <Button variant="destructive" onClick={() => handleDelete(item.id)}>
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Item</DialogTitle>
-          </DialogHeader>
-          {editingItem && (
-            <form onSubmit={handleUpdate} className="space-y-4">
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-4" onClick={() => setIsAddDialogOpen(true)}>Add New Item</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Item</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="edit-name">Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
-                  id="edit-name"
-                  value={editingItem.name}
-                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                  id="name"
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                   required
                 />
                 {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="edit-description">Description</Label>
+                <Label htmlFor="description">Description</Label>
                 <Input
-                  id="edit-description"
-                  value={editingItem.description}
-                  onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                  id="description"
+                  value={newItem.description}
+                  onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                   required
                 />
                 {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="edit-price">Price</Label>
+                <Label htmlFor="price">Price</Label>
                 <Input
-                  id="edit-price"
+                  id="price"
                   type="number"
-                  value={editingItem.price}
-                  onChange={(e) => setEditingItem({ ...editingItem, price: Number(e.target.value) })}
+                  value={newItem.price}
+                  onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
                   required
                 />
                 {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="edit-vendor_name">Vendor</Label>
+                <Label htmlFor="vendor_id">Vendor</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full">
-                      {editingItem.vendor.name}
+                      {selectedVendor ? selectedVendor.name : 'Select Vendor'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
@@ -388,7 +305,8 @@ const ItemsCrud: React.FC = () => {
                             <CommandItem
                               key={vendor.id}
                               onSelect={() => {
-                                setEditingItem({ ...editingItem, vendor: { ...editingItem.vendor, name: vendor.name } });
+                                setSelectedVendor(vendor);
+                                setNewItem({ ...newItem, vendor_id: vendor.id });
                               }}
                             >
                               {vendor.name}
@@ -402,52 +320,225 @@ const ItemsCrud: React.FC = () => {
                 {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="edit-product_url">Product URL</Label>
+                <Label htmlFor="product_url">Product URL</Label>
                 <Input
-                  id="edit-product_url"
-                  value={editingItem.product_url}
-                  onChange={(e) => setEditingItem({ ...editingItem, product_url: e.target.value })}
+                  id="product_url"
+                  value={newItem.product_url}
+                  onChange={(e) => setNewItem({ ...newItem, product_url: e.target.value })}
                   required
                 />
                 {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="edit-image">Image</Label>
-                {editingItem.image_url && (
-                  <div>
-                    <img
-                      src={editingItem.image_url.startsWith('http') ? editingItem.image_url : `/storage/${editingItem.image_url}`}
-                      alt={editingItem.name}
-                      className="w-16 h-16 object-cover"
-                    />
-                    <Button variant="outline" onClick={() => setEditingItem({ ...editingItem, image_url: '' })}>
-                      Change Image
-                    </Button>
-                  </div>
-                )}
-                {!editingItem.image_url && (
-                  <>
-                    <Input
-                      id="edit-image"
-                      type="file"
-                      onChange={handleImageChange}
-                    />
-                    <Input
-                      id="edit-image_url"
-                      placeholder="Or enter image URL"
-                      value={editingItem.image_url}
-                      onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
-                    />
-                  </>
-                )}
+                <Label htmlFor="image">Image</Label>
+                <Input
+                  id="image"
+                  type="file"
+                  onChange={handleImageChange}
+                />
+                <Input
+                  id="image_url"
+                  placeholder="Or enter image URL"
+                  value={newItem.image_url}
+                  onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
+                />
                 {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
               </div>
-              <Button type="submit">Update Item</Button>
+              <Button type="submit">Add Item</Button>
             </form>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+          </DialogContent>
+        </Dialog>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>ID</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Vendor</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedItems.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.id}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell>{item.price}</TableCell>
+                <TableCell>{item.vendor.name}</TableCell>
+                <TableCell>
+                  <Button variant="outline" className="mr-2" onClick={() => handleEditClick(item)}>
+                    Edit
+                  </Button>
+                  <Button variant="destructive" onClick={() => handleDelete(item.id)}>
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              <span>Pirmas</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <span>Atgal</span>
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-medium">
+                Puslapis {currentPage} iš {totalPages}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <span>Pirmyn</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <span>Paskutinis</span>
+            </Button>
+          </div>
+        )}
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Item</DialogTitle>
+            </DialogHeader>
+            {editingItem && (
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name">Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingItem.name}
+                    onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                    required
+                  />
+                  {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="edit-description">Description</Label>
+                  <Input
+                    id="edit-description"
+                    value={editingItem.description}
+                    onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                    required
+                  />
+                  {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="edit-price">Price</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    value={editingItem.price}
+                    onChange={(e) => setEditingItem({ ...editingItem, price: Number(e.target.value) })}
+                    required
+                  />
+                  {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="edit-vendor_name">Vendor</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        {editingItem.vendor.name}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0">
+                      <Command>
+                        <CommandInput placeholder="Search vendors..." />
+                        <CommandList>
+                          <CommandEmpty>No vendors found.</CommandEmpty>
+                          <CommandGroup>
+                            {vendors.map((vendor) => (
+                              <CommandItem
+                                key={vendor.id}
+                                onSelect={() => {
+                                  setEditingItem({ ...editingItem, vendor: { ...editingItem.vendor, name: vendor.name } });
+                                }}
+                              >
+                                {vendor.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="edit-product_url">Product URL</Label>
+                  <Input
+                    id="edit-product_url"
+                    value={editingItem.product_url}
+                    onChange={(e) => setEditingItem({ ...editingItem, product_url: e.target.value })}
+                    required
+                  />
+                  {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="edit-image">Image</Label>
+                  {editingItem.image_url && (
+                    <div>
+                      <img
+                        src={editingItem.image_url.startsWith('http') ? editingItem.image_url : `/storage/${editingItem.image_url}`}
+                        alt={editingItem.name}
+                        className="w-16 h-16 object-cover"
+                      />
+                      <Button variant="outline" onClick={() => setEditingItem({ ...editingItem, image_url: '' })}>
+                        Change Image
+                      </Button>
+                    </div>
+                  )}
+                  {!editingItem.image_url && (
+                    <>
+                      <Input
+                        id="edit-image"
+                        type="file"
+                        onChange={handleImageChange}
+                      />
+                      <Input
+                        id="edit-image_url"
+                        placeholder="Or enter image URL"
+                        value={editingItem.image_url}
+                        onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
+                      />
+                    </>
+                  )}
+                  {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
+                </div>
+                <Button type="submit">Update Item</Button>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+      <Toaster />
+    </>
   );
 };
 
