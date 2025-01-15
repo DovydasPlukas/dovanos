@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import Layout from '@/Layouts/Layout';
 import { Button } from '@/components/ui/button';
 import { Pagination } from '@/Components/ui/pagination';
 import { X } from 'lucide-react';
-import Dovana from '@/Components/MyComponents/Dovana';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/Components/ui/toaster";
+
+// Lazy load Dovana component
+const LazyDovana = lazy(() => import('@/Components/MyComponents/Dovana'));
 
 interface Item {
   id: number;
@@ -44,6 +48,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
   });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const { toast } = useToast();
 
   const occasions = ["Kalėdos", "Gimtadienis", "Tėvo diena", "Mamos diena", "Santuoka"];
 
@@ -219,6 +224,35 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
     </div>
   );
 
+  const handleWishlistUpdate = (removed: boolean) => {
+    toast({
+      description: removed 
+        ? "Prekė sėkmingai pašalinta iš jūsų norų sąrašo" 
+        : "Prekė sėkmingai pridėta į jūsų norų sąrašą"
+    });
+  };
+
+  const renderDovana = (item: Item, index: number) => (
+    <Suspense
+      key={item.id}
+      fallback={
+        <div className="p-4 border rounded-lg shadow-md h-full animate-pulse">
+          <div className="w-full h-48 bg-gray-200 rounded-md mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      }
+    >
+      <LazyDovana
+        {...item}
+        isAuthenticated={!!auth.user}
+        isAdmin={auth.user?.is_admin === 1}
+        onWishlistUpdate={handleWishlistUpdate}
+        isPriority={index < 4} // Prioritize first 4 items
+      />
+    </Suspense>
+  );
+
   return (
     <Layout>
       <Head title="Prekės" />
@@ -247,14 +281,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
                   {paginatedItems.length === 0 ? (
                     <p>Dovanų nėra.</p>
                   ) : (
-                    paginatedItems.map(item => (
-                      <Dovana
-                        key={item.id}
-                        {...item}
-                        isAuthenticated={!!auth.user}
-                        isAdmin={auth.user?.is_admin === 1}
-                      />
-                    ))
+                    paginatedItems.map(renderDovana)
                   )}
                 </div>
                 <div className="mt-8 pt-4 border-t">
@@ -269,6 +296,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
           </div>
         </div>
       </div>
+      <Toaster />
     </Layout>
   );
 };

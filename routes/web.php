@@ -61,10 +61,16 @@ Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
 });
 
-
 // Vendor routes
 Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::resource('vendors', VendorController::class);
+});
+
+// Wishlist routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
+    Route::post('/wishlist/toggle/{item_id}', [WishlistController::class, 'toggle']);
+    Route::get('/wishlist/check/{item_id}', [WishlistController::class, 'check']);
 });
 
 // Other routes
@@ -74,7 +80,6 @@ Route::get('/apie', function () {
 Route::get('/kontaktai', function () {
     return Inertia::render('Contact'); 
 });
-Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
 
 Route::get('/edit', function () {
     return Inertia::render('Edit-page'); 

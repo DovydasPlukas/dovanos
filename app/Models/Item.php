@@ -20,7 +20,17 @@ class Item extends Model
     
     // connect to the vendor table
     public function vendor()
-{
-    return $this->belongsTo(Vendor::class);
-}
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function wishlistUsers()
+    {
+        return $this->belongsToMany(User::class, 'wishlist');
+    }
 }

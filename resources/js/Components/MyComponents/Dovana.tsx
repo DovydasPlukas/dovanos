@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from '@inertiajs/react';
-import { Heart } from 'lucide-react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { Heart, ImageIcon } from 'lucide-react';
 import RedirectButton from '@/Components/MyComponents/RedirectButton';
+import axios from 'axios';
+import OptimizedImage from './OptimizedImage';
 
 interface DovanaProps {
   id: number;
@@ -11,7 +13,9 @@ interface DovanaProps {
   image_url?: string;
   product_url: string;
   isAuthenticated: boolean;
-  isAdmin?: boolean;  // Add this new prop
+  isAdmin?: boolean;
+  onWishlistUpdate?: (removed: boolean) => void;
+  isPriority?: boolean;
 }
 
 const Dovana: React.FC<DovanaProps> = ({ 
@@ -22,9 +26,38 @@ const Dovana: React.FC<DovanaProps> = ({
   image_url, 
   product_url, 
   isAuthenticated,
-  isAdmin = false  // Default to false
+  isAdmin = false,  // Default to false
+  onWishlistUpdate,
+  isPriority = false
 }) => {
   const [imageError, setImageError] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && !isAdmin) {
+      axios.get(`/wishlist/check/${id}`).then(response => {
+        setIsInWishlist(response.data.inWishlist);
+      });
+    }
+  }, [id, isAuthenticated, isAdmin]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      router.visit('/login');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`/wishlist/toggle/${id}`);
+      setIsInWishlist(response.data.inWishlist);
+      onWishlistUpdate?.(!response.data.inWishlist);
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    }
+  };
 
   const truncateText = (text: string, charLimit: number) => {
     if (text.length > charLimit) {
@@ -34,36 +67,26 @@ const Dovana: React.FC<DovanaProps> = ({
   };
 
   const renderPlaceholder = () => (
-    <div className="w-full h-full flex justify-center items-center">
-      <div className="bg-gray-200 p-4 rounded-lg flex flex-col items-center">
-        <svg
-          className="w-16 h-16 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      </div>
+    <div className="w-full h-full flex justify-center items-center bg-gray-100">
+      <ImageIcon className="w-16 h-16 text-gray-400" />
     </div>
   );
 
   return (
     <Link href={`/items/${id}`} as="div" className="block">
       <div className="p-4 border rounded-lg shadow-md hover:shadow-lg cursor-pointer h-full flex flex-col">
-        <div className="w-full h-48 mb-4 bg-gray-200 flex items-center justify-center overflow-hidden">
+        <div className="w-full h-48 mb-4 bg-gray-100 flex items-center justify-center overflow-hidden">
           {image_url && !imageError ? (
-            <img 
+            <OptimizedImage 
               src={image_url} 
-              alt={name} 
-              className="w-full h-full object-cover"
+              alt={name}
+              className="w-full h-full"
+              width={300}
+              height={300}
               onError={() => setImageError(true)}
+              loading="lazy"
+              blurDataURL={`${image_url}?w=50&q=10`}
+              priority={isPriority}
             />
           ) : (
             renderPlaceholder()
@@ -78,8 +101,10 @@ const Dovana: React.FC<DovanaProps> = ({
           </div>
           {isAuthenticated && !isAdmin && (
             <Heart
-              className="text-black hover:text-red-600 cursor-pointer"
-              onClick={(e) => e.stopPropagation()}
+              className={`cursor-pointer transition-colors ${
+                isInWishlist ? 'text-red-600 fill-red-600' : 'text-black hover:text-red-600'
+              }`}
+              onClick={handleWishlistToggle}
             />
           )}
         </div>

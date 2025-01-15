@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '@/Layouts/Layout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Heart } from 'lucide-react';
+import { Heart, ImageIcon } from 'lucide-react';
 import { Card } from '@/Components/ui/card';
 import { Label } from '@/Components/ui/label';
 import RedirectButton from '@/Components/MyComponents/RedirectButton';
+import axios from 'axios';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/Components/ui/toaster";
 
 interface Item {
   id: number;
@@ -30,12 +33,22 @@ const getImageUrl = (imageUrl: string) => {
 
 const ItemDetail: React.FC<ItemDetailProps> = ({ item }) => {
   const { auth } = usePage().props as { auth: { user: any } };
+  const { toast } = useToast();
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   const isAuthenticated = !!auth.user;
   const isAdmin = auth.user?.is_admin === 1;
+
+  useEffect(() => {
+    if (isAuthenticated && !isAdmin) {
+      axios.get(`/wishlist/check/${item.id}`).then(response => {
+        setIsInWishlist(response.data.inWishlist);
+      });
+    }
+  }, [item.id, isAuthenticated, isAdmin]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const bounds = e.currentTarget.getBoundingClientRect();
@@ -44,7 +57,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ item }) => {
     setZoomPosition({ x, y });
   };
 
-  const handleHeartClick = (e: React.MouseEvent) => {
+  const handleHeartClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -52,30 +65,27 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ item }) => {
       router.visit('/login');
       return;
     }
-    
-    // Add wishlist logic here
-    console.log('Add to wishlist clicked');
+
+    try {
+      const response = await axios.post(`/wishlist/toggle/${item.id}`);
+      setIsInWishlist(response.data.inWishlist);
+      toast({
+        description: response.data.inWishlist 
+          ? "Prekė sėkmingai pridėta į jūsų norų sąrašą" 
+          : "Prekė sėkmingai pašalinta iš jūsų norų sąrašo"
+      });
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      toast({
+        variant: "destructive",
+        description: "Nepavyko atnaujinti norų sąrašo"
+      });
+    }
   };
 
   const renderPlaceholder = () => (
-    <div className="w-full flex justify-center items-center mb-4 mt-20">
-      <div className="bg-gray-200 p-8 rounded-lg">
-        <svg
-          className="w-32 h-32 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-        <p className="text-gray-500 mt-2">No image available</p>
-      </div>
+    <div className="w-full flex justify-center items-center mb-4 mt-20 bg-gray-100 p-8 rounded-lg">
+      <ImageIcon className="w-32 h-32 text-gray-400" />
     </div>
   );
 
@@ -131,9 +141,11 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ item }) => {
                 {!isAdmin && (
                   <Heart
                     className={`cursor-pointer transition-colors ${
-                      isAuthenticated 
-                        ? 'text-black hover:text-red-600 hover:fill-red-600' 
-                        : 'text-gray-400 hover:text-gray-600'
+                      isInWishlist 
+                        ? 'text-red-600 fill-red-600' 
+                        : isAuthenticated 
+                          ? 'text-black hover:text-red-600 hover:fill-red-600' 
+                          : 'text-gray-400 hover:text-gray-600'
                     }`}
                     onClick={handleHeartClick}
                   />
@@ -152,6 +164,7 @@ const ItemDetail: React.FC<ItemDetailProps> = ({ item }) => {
           <p className="text-md">{item.description}</p>
         </div>
       </div>
+      <Toaster />
     </Layout>
   );
 };

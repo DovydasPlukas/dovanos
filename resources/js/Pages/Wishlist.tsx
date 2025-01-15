@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import Layout from '@/Layouts/Layout';
-import { Head, Link } from '@inertiajs/react'; 
-import { Heart } from 'lucide-react'; 
-import { Button } from '@/components/ui/button';
+import { Head } from '@inertiajs/react';
+import Dovana from '@/Components/MyComponents/Dovana';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/Components/ui/toaster";
 
 interface Item {
   id: number;
@@ -11,68 +11,51 @@ interface Item {
   description: string;
   price: string;
   image_url?: string;
-  occasion?: string[];
+  product_url: string;
 }
 
-const Wishlist: React.FC<{ items: Item[] }> = ({ items }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [randomItem, setRandomItem] = useState<Item | null>(null);
+const Wishlist: React.FC<{ items: Item[], auth: { user: any } }> = ({ items, auth }) => {
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // Select a random item when the component mounts
-    if (items && items.length > 0) {
-      const randomIndex = Math.floor(Math.random() * items.length);
-      setRandomItem(items[randomIndex]);
-      setLoading(false);
-    }
-  }, [items]);
+  const handleWishlistUpdate = (removed: boolean) => {
+    toast({
+      title: removed ? "Prekė pašalinta" : "Prekė pridėta",
+      description: removed 
+        ? "Prekė sėkmingai pašalinta iš jūsų norų sąrašo" 
+        : "Prekė sėkmingai pridėta į jūsų norų sąrašą",
+    });
+  };
 
-  if (loading) {
-    return <Layout><p>Loading...</p></Layout>;
-  }
-
-  if (!randomItem) {
+  if (!items || items.length === 0) {
     return (
       <Layout>
-        <Head title="Wishlist" />
-        <p>No items available in your wishlist.</p>
+        <Head title="Norų sąrašas" />
+        <div className="container mx-auto p-4 min-h-screen">
+          <h1 className="text-2xl font-bold mb-4">Jūsų norų sąrašas</h1>
+          <p>Jūsų norų sąrašas tuščias.</p>
+        </div>
       </Layout>
     );
   }
 
   return (
     <Layout>
-      <Head title="Wishlist" />
-      <div className='flex justify-center mt-8'><strong>Random Item</strong></div>
-      <div className='flex justify-center mt-8'><strong>Will add logic later to wishlist</strong></div>
-      <div className="container mx-auto p-4 h-screen flex justify-center items-center">
-        <div className="w-full max-w-lg p-4 border rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-4">Your Wishlist</h1>
-          {/* Display random item details */}
-          <div className="mb-4">
-            {randomItem.image_url && (
-              <img
-                src={randomItem.image_url}
-                alt={randomItem.name}
-                className="w-full h-48 object-cover mb-4"
-              />
-            )}
-            <h2 className="text-xl font-semibold">{randomItem.name}</h2>
-            <p>{randomItem.description}</p>
-            <p className="text-lg font-semibold">{randomItem.price} €</p>
-          </div>
-          
-          <div className="flex items-center justify-between mt-4">
-            <Button className="px-4 py-2 text-white rounded hover:bg-gray-300 hover:text-black w-full">
-              Visit Product
-            </Button>
-            <Heart
-              className="text-black hover:text-red-600 cursor-pointer"
-              onClick={(e) => e.stopPropagation()} // Prevent card click from triggering
+      <Head title="Norų sąrašas" />
+      <div className="container mx-auto p-4 min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Jūsų norų sąrašas</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((item) => (
+            <Dovana
+              key={item.id}
+              {...item}
+              isAuthenticated={!!auth.user}
+              isAdmin={auth.user?.is_admin === 1}
+              onWishlistUpdate={handleWishlistUpdate}
             />
-          </div>
+          ))}
         </div>
       </div>
+      <Toaster />
     </Layout>
   );
 };
