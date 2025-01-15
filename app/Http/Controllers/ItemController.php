@@ -34,14 +34,14 @@ class ItemController extends Controller
     // Create a new item (Admin only)
     public function store(Request $request)
     {
-        // Validate input data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric',
-            'image_url' => 'nullable|string|max:2048', // Allow URLs as strings
             'vendor_id' => 'required|exists:vendors,id',
             'product_url' => 'required|string',
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|string|url',
         ]);
 
         if ($validator->fails()) {
@@ -53,11 +53,12 @@ class ItemController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Handle image upload or URL
-        $imagePath = $request->image_url;
-        if ($request->hasFile('image_url')) {
-            $imagePath = $request->file('image_url')->store('images/products', 'public');
-        } elseif (filter_var($request->image_url, FILTER_VALIDATE_URL)) {
+        // Handle image
+        $imagePath = null;
+        if ($request->hasFile('image_file')) {
+            $imagePath = $request->file('image_file')->store('images', 'public');
+            $imagePath = 'storage/' . $imagePath;
+        } elseif ($request->filled('image_url')) {
             $imagePath = $request->image_url;
         }
 
@@ -66,7 +67,7 @@ class ItemController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'image_url' => $imagePath,  // Store image path in the database
+            'image_url' => $imagePath,
             'vendor_id' => $request->vendor_id,
             'product_url' => $request->product_url,
         ]);
@@ -112,7 +113,8 @@ class ItemController extends Controller
             'price' => 'sometimes|numeric',
             'description' => 'nullable|string',
             'vendor_id' => 'sometimes|exists:vendors,id',
-            'image_url' => 'nullable|string|max:2048', // Allow URLs as strings
+            'image_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|string',
         ]);
 
         // Return validation errors if validation fails
@@ -120,29 +122,31 @@ class ItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        // Handle image update if a new image is provided
-        if ($request->hasFile('image_url')) {
-            // Delete the old image if it exists
+        // Handle image
+        if ($request->hasFile('image_file')) {
+            // Delete old image if it exists and is not a URL
             if ($item->image_url && !filter_var($item->image_url, FILTER_VALIDATE_URL)) {
-                Storage::disk('public')->delete($item->image_url);
+                Storage::disk('public')->delete(str_replace('storage/', '', $item->image_url));
             }
-
-            // Store the new image
-            $imagePath = $request->file('image_url')->store('images/products', 'public');
-            $item->image_url = $imagePath;
-        } elseif (filter_var($request->image_url, FILTER_VALIDATE_URL)) {
-            $item->image_url = $request->image_url;
-        } else if ($request->image_url) {
+            $imagePath = $request->file('image_file')->store('images', 'public');
+            $item->image_url = 'storage/' . $imagePath;
+        } elseif ($request->filled('image_url')) {
+            // Delete old image if it exists and is not a URL
+            if ($item->image_url && !filter_var($item->image_url, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete(str_replace('storage/', '', $item->image_url));
+            }
             $item->image_url = $request->image_url;
         }
 
         // Update the item with the provided data (including optional image update)
-        $item->fill($request->only(['name', 'description', 'price', 'vendor_id', 'image_url']));
+        $item->fill($request->except(['image_file', 'image_url']));
         $item->save();
 
         // Return the updated item in the response
         return response()->json($item);
     }
+
+
     // Delete an existing item (Admin only)
     public function destroy($id)
     {

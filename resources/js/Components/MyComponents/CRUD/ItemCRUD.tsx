@@ -43,6 +43,14 @@ interface ItemFormData {
   image_url: string;
 }
 
+const getImageUrl = (imageUrl: string) => {
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http')) {
+      return imageUrl;
+  }
+  return `${window.location.origin}/${imageUrl}`;
+};
+
 const ItemsCrud: React.FC = () => {
   const { toast } = useToast();
   const [items, setItems] = useState<Item[]>([]);
@@ -102,16 +110,18 @@ const ItemsCrud: React.FC = () => {
     e.preventDefault();
     const formData = new FormData();
     Object.entries(newItem).forEach(([key, value]) => {
-      formData.append(key, value.toString());
+      if (key !== 'image_url') {
+        formData.append(key, value.toString());
+      }
     });
     if (imageFile) {
-      formData.append('image_url', imageFile);
-    } else if (newItem.image_url && newItem.image_url.startsWith('http')) {
+      formData.append('image_file', imageFile);
+    } else if (newItem.image_url) {
       formData.append('image_url', newItem.image_url);
     }
 
     try {
-      await axios.post('/items', formData, {
+      const response = await axios.post('/items', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       fetchItems();
@@ -150,13 +160,13 @@ const ItemsCrud: React.FC = () => {
       }
     });
     if (imageFile) {
-      formData.append('image_url', imageFile);
+      formData.append('image_file', imageFile);
     } else if (editingItem.image_url && editingItem.image_url.startsWith('http')) {
       formData.append('image_url', editingItem.image_url);
     }
 
     try {
-      await axios.post(`/items/${editingItem.id}`, formData, {
+      const response = await axios.post(`/items/${editingItem.id}`, formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           'X-HTTP-Method-Override': 'PUT'
@@ -331,17 +341,23 @@ const ItemsCrud: React.FC = () => {
               </div>
               <div>
                 <Label htmlFor="image">Image</Label>
-                <Input
-                  id="image"
-                  type="file"
-                  onChange={handleImageChange}
-                />
-                <Input
-                  id="image_url"
-                  placeholder="Or enter image URL"
-                  value={newItem.image_url}
-                  onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-                />
+                <div className="space-y-2">
+                  <Input
+                    id="image_file"
+                    type="file"
+                    onChange={handleImageChange}
+                    accept="image/*"
+                  />
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-500 px-2">OR</span>
+                    <Input
+                      id="image_url"
+                      placeholder="Enter image URL"
+                      value={newItem.image_url}
+                      onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
+                    />
+                  </div>
+                </div>
                 {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
               </div>
               <Button type="submit">Add Item</Button>
@@ -502,33 +518,23 @@ const ItemsCrud: React.FC = () => {
                 </div>
                 <div>
                   <Label htmlFor="edit-image">Image</Label>
-                  {editingItem.image_url && (
-                    <div>
-                      <img
-                        src={editingItem.image_url.startsWith('http') ? editingItem.image_url : `/storage/${editingItem.image_url}`}
-                        alt={editingItem.name}
-                        className="w-16 h-16 object-cover"
-                      />
-                      <Button variant="outline" onClick={() => setEditingItem({ ...editingItem, image_url: '' })}>
-                        Change Image
-                      </Button>
-                    </div>
-                  )}
-                  {!editingItem.image_url && (
-                    <>
+                  <div className="space-y-2">
+                    <Input
+                      id="edit-image-file"
+                      type="file"
+                      onChange={handleImageChange}
+                      accept="image/*"
+                    />
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-500 px-2">OR</span>
                       <Input
-                        id="edit-image"
-                        type="file"
-                        onChange={handleImageChange}
-                      />
-                      <Input
-                        id="edit-image_url"
-                        placeholder="Or enter image URL"
-                        value={editingItem.image_url}
+                        id="edit-image-url"
+                        placeholder="Enter image URL"
+                        defaultValue={editingItem.image_url}
                         onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
                       />
-                    </>
-                  )}
+                    </div>
+                  </div>
                   {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
                 </div>
                 <Button type="submit">Update Item</Button>

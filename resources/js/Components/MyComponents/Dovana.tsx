@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import RedirectButton from '@/Components/MyComponents/RedirectButton';
@@ -24,6 +24,8 @@ const Dovana: React.FC<DovanaProps> = ({
   isAuthenticated,
   isAdmin = false  // Default to false
 }) => {
+  const [imageError, setImageError] = useState(false);
+
   const truncateText = (text: string, charLimit: number) => {
     if (text.length > charLimit) {
       return text.substring(0, charLimit) + '...';
@@ -31,19 +33,40 @@ const Dovana: React.FC<DovanaProps> = ({
     return text;
   };
 
+  const renderPlaceholder = () => (
+    <div className="w-full h-full flex justify-center items-center">
+      <div className="bg-gray-200 p-4 rounded-lg flex flex-col items-center">
+        <svg
+          className="w-16 h-16 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+
   return (
     <Link href={`/items/${id}`} as="div" className="block">
       <div className="p-4 border rounded-lg shadow-md hover:shadow-lg cursor-pointer h-full flex flex-col">
-        <div className="w-full h-48 mb-4 bg-gray-200 flex items-center justify-center">
-          {image_url ? (
+        <div className="w-full h-48 mb-4 bg-gray-200 flex items-center justify-center overflow-hidden">
+          {image_url && !imageError ? (
             <img 
               src={image_url} 
               alt={name} 
               className="w-full h-full object-cover"
-              onError={(e) => e.currentTarget.style.display = 'none'}
+              onError={() => setImageError(true)}
             />
           ) : (
-            <span className="text-gray-400">No image</span>
+            renderPlaceholder()
           )}
         </div>
         <h2 className="text-xl font-semibold mb-2">{truncateText(name, 20)}</h2>
