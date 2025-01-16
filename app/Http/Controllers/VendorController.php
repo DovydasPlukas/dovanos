@@ -2,26 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Vendor;
+use App\Services\VendorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class VendorController extends Controller
 {
+    protected $vendorService;
+
+    public function __construct(VendorService $vendorService)
+    {
+        $this->vendorService = $vendorService;
+    }
+
     public function index()
     {
-        $vendors = Vendor::all();
+        if (!request()->expectsJson()) {
+            return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+        }
+
+        $vendors = $this->vendorService->getAllVendors();
         return response()->json(['data' => $vendors]);
     }
 
     public function store(Request $request)
     {
-        // Only admins can create vendors
-        if (!Auth::user() || !Auth::user()->is_admin) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'contact_details' => 'required|string',
@@ -32,32 +38,30 @@ class VendorController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $vendor = Vendor::create($request->all());
-        return response()->json($vendor, 201);
+        try {
+            $vendor = $this->vendorService->createVendor($request->all());
+            return response()->json($vendor, 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
     }
 
     public function show($id)
     {
-        $vendor = Vendor::find($id);
-        if (!$vendor) {
+        if (!request()->expectsJson()) {
+            return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+        }
+
+        try {
+            $vendor = $this->vendorService->getVendor($id);
+            return response()->json($vendor);
+        } catch (\Exception $e) {
             return response()->json(['message' => 'Vendor not found'], 404);
         }
-        return response()->json($vendor);
     }
 
     public function update(Request $request, $id)
     {
-        // Find the vendor by ID, return a 404 response if not found
-        $vendor = Vendor::find($id);
-        if (!$vendor) {
-            return response()->json(['message' => 'Vendor not found'], 404);
-        }
-
-        // Only admins can update vendors
-        if (!Auth::user() || !Auth::user()->is_admin) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'contact_details' => 'sometimes|string',
@@ -68,24 +72,21 @@ class VendorController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
-        $vendor->update($request->all());
-        return response()->json($vendor);
+        try {
+            $vendor = $this->vendorService->updateVendor($id, $request->all());
+            return response()->json($vendor);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
     }
 
     public function destroy($id)
     {
-        // Find the vendor by ID, return a 404 response if not found
-        $vendor = Vendor::find($id);
-        if (!$vendor) {
-            return response()->json(['message' => 'Vendor not found'], 404);
+        try {
+            $this->vendorService->deleteVendor($id);
+            return response()->json(['message' => 'Vendor deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
         }
-
-        // Only admins can delete vendors
-        if (!Auth::user() || !Auth::user()->is_admin) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $vendor->delete();
-        return response()->json(null, 204);
     }
 }

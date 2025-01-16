@@ -2,40 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FeaturedItem;
-use App\Models\Item;
+use App\Services\FeaturedItemService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class FeaturedItemController extends Controller
 {
+    protected $featuredItemService;
+
+    public function __construct(FeaturedItemService $featuredItemService)
+    {
+        $this->featuredItemService = $featuredItemService;
+    }
+
     public function index()
     {
-        $featuredItems = FeaturedItem::with(['item.vendor'])->get()->map(function ($featuredItem) {
-            return [
-                'id' => $featuredItem->id,
-                'item_id' => $featuredItem->item_id,
-                'name' => $featuredItem->item->name,
-                'vendor_name' => $featuredItem->item->vendor->name,
-                'description' => $featuredItem->item->description,
-                'price' => $featuredItem->item->price,
-                'image_url' => $featuredItem->item->image_url,
-                'product_url' => $featuredItem->item->product_url,
-                'start_date' => $featuredItem->start_date->format('Y-m-d'),
-                'end_date' => $featuredItem->end_date->format('Y-m-d'),
-            ];
-        });
+        if (!request()->expectsJson()) {
+            return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+        }
 
-        return response()->json($featuredItems);
+        return response()->json($this->featuredItemService->getAllFeaturedItems());
     }
 
     public function store(Request $request)
     {
-        if (!Auth::user() || !Auth::user()->is_admin) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $validator = Validator::make($request->all(), [
             'item_id' => 'required|exists:items,id',
             'start_date' => 'required|date',
@@ -46,25 +37,21 @@ class FeaturedItemController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $featuredItemsCount = FeaturedItem::count();
-        if ($featuredItemsCount >= 5) {
-            return response()->json(['error' => 'Maximum number of featured items reached'], 422);
+        try {
+            $featuredItem = $this->featuredItemService->createFeaturedItem($request->all());
+            return response()->json($featuredItem, 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
         }
-
-        $featuredItem = FeaturedItem::create($request->all());
-
-        return response()->json($featuredItem, 201);
     }
 
     public function destroy($id)
     {
-        if (!Auth::user() || !Auth::user()->is_admin) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        try {
+            $this->featuredItemService->deleteFeaturedItem($id);
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
         }
-
-        $featuredItem = FeaturedItem::findOrFail($id);
-        $featuredItem->delete();
-
-        return response()->json(null, 204);
     }
 }

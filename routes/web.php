@@ -6,12 +6,12 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\XMLController;
-use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// Public web routes
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -19,88 +19,78 @@ Route::get('/', function () {
     ]);
 })->name('index');
 
-Route::get('/dashboard', function (Request $request) {
-    $user = Auth::user();
+// Auth required routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard (admin only)
+    Route::get('/dashboard', function (Request $request) {
+        $user = Auth::user();
+        if (!$user || !$user->is_admin) {
+            return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+        }
+        return Inertia::render('Dashboard', [
+            'user' => $user,
+            'initialTab' => $request->query('tab', 'dashboard'),
+        ]);
+    })->name('dashboard');
 
-    if (!$user || !$user->is_admin) {
-        return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
-    }
-
-    return Inertia::render('Dashboard', [
-        'user' => $user,
-        'initialTab' => $request->query('tab', 'dashboard'), // Default to 'dashboard' if no tab is provided
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-
-Route::middleware('auth')->group(function () {
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-require __DIR__.'/auth.php';
-
-//API endpoints
-
-// Public routes (requests 60 per minute)
-Route::middleware('throttle:60,1')->group(function () {
-    Route::get('/items', [ItemController::class, 'index']);                 // gauti prekių sąrašą
-    Route::get('/items/{id}', [ItemController::class, 'show']);             // gauti konkrečios prekės informaciją
-    Route::get('/redirect/{item_id}', [ItemController::class, 'redirect']); // registruoti nukreipimą ir nukreipti vartotoją
-});
-
-// Admin routes (requests 100 per minute)
-Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
-    Route::post('/items', [ItemController::class, 'store']);                // pridėti naują prekę (admin)
-    Route::put('/items/{id}', [ItemController::class, 'update']);           // redaguoti prekę (admin)
-    Route::delete('/items/{id}', [ItemController::class, 'destroy']);       // ištrinti prekę (admin)
-
-    // XML upload route
-    Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
-});
-
-// Vendor routes
-Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
-    Route::resource('vendors', VendorController::class);
-});
-
-// Featured Items routes
-Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
-    Route::get('/featured-items', [FeaturedItemController::class, 'index']);
-    Route::post('/featured-items', [FeaturedItemController::class, 'store']);
-    Route::delete('/featured-items/{id}', [FeaturedItemController::class, 'destroy']);
-});
-
-// Wishlist routes
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Wishlist routes
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
     Route::post('/wishlist/toggle/{item_id}', [WishlistController::class, 'toggle']);
     Route::get('/wishlist/check/{item_id}', [WishlistController::class, 'check']);
 });
 
-// Other routes
+// Public API routes (60 requests per minute)
+Route::middleware('throttle:public')->group(function () {
+    Route::get('/items', [ItemController::class, 'index']);
+    Route::get('/items/{id}', [ItemController::class, 'show']);
+    Route::get('/redirect/{item_id}', [ItemController::class, 'redirect']);
+    Route::get('/api/search', [ItemController::class, 'search']);
+    Route::get('/featured-items', [FeaturedItemController::class, 'index']);
+});
+
+// Admin API routes (100 requests per minute)
+Route::middleware(['auth:sanctum', 'throttle:admin'])->group(function () {
+    // Items management
+    Route::post('/items', [ItemController::class, 'store']);
+    Route::put('/items/{id}', [ItemController::class, 'update']);
+    Route::delete('/items/{id}', [ItemController::class, 'destroy']);
+
+    // Vendors management
+    Route::resource('vendors', VendorController::class);
+
+    // Featured Items management
+    Route::post('/featured-items', [FeaturedItemController::class, 'store']);
+    Route::delete('/featured-items/{id}', [FeaturedItemController::class, 'destroy']);
+
+    // XML upload
+    Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
+});
+
+// Static pages
 Route::get('/apie', function () {
     return Inertia::render('About');
 });
 Route::get('/kontaktai', function () {
-    return Inertia::render('Contact'); 
+    return Inertia::render('Contact');
 });
-
 Route::get('/edit', function () {
-    return Inertia::render('Edit-page'); 
+    return Inertia::render('Edit-page');
 });
-// Searchbar
-Route::get('/api/search', [ItemController::class, 'search']);
 
-
-// API route
-// To test out API using Postman
-Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
-    return response()->json($request->user());
-});
+// Auth routes
+require __DIR__.'/auth.php';
 
 // Fallback route
 Route::fallback(function () {
     return Inertia::render('ErrorPage')->toResponse(request())->setStatusCode(404);
+});
+
+// To test out API using Postman (check user)
+Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
+    return response()->json($request->user());
 });

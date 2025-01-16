@@ -5,6 +5,8 @@ import { Head, Link } from '@inertiajs/react';
 import { Cake, TreePine, Heart, Home, Torus } from 'lucide-react'; 
 import axios from 'axios';
 import Dovana from '@/Components/MyComponents/Dovana';
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/Components/ui/toaster";
 
 
 interface FeaturedItem {
@@ -19,6 +21,12 @@ interface FeaturedItem {
   end_date: string;
 }
 
+interface Props {
+  auth: {
+    user: any;
+  };
+}
+
 const occasions = [
     { icon: <TreePine size={40} />, label: 'Kalėdos', link: '#' },
     { icon: <Cake size={40} />, label: 'Gimtadienis', link: '#' },
@@ -27,9 +35,10 @@ const occasions = [
     { icon: <Torus size={40} />, label: 'Santuoka', link: '#' },
   ];
 
-const Welcome: React.FC = () => {
+const Welcome: React.FC<Props> = ({ auth }) => {
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchFeaturedItems = async () => {
@@ -72,6 +81,14 @@ const Welcome: React.FC = () => {
     ));
   };
 
+  const handleWishlistUpdate = (removed: boolean) => {
+    toast({
+      description: removed 
+        ? "Prekė sėkmingai pašalinta iš jūsų norų sąrašo" 
+        : "Prekė sėkmingai pridėta į jūsų norų sąrašą"
+    });
+  };
+
   return (
     <Layout>
       <Head title="Sveiki" />
@@ -111,7 +128,9 @@ const Welcome: React.FC = () => {
                     price={item.price}
                     image_url={item.image_url}
                     product_url={item.product_url}
-                    isAuthenticated={false}
+                    isAuthenticated={!!auth.user}
+                    isAdmin={auth.user?.is_admin}
+                    onWishlistUpdate={handleWishlistUpdate}
                     isPriority={true}
                   />
                 ))}
@@ -121,6 +140,7 @@ const Welcome: React.FC = () => {
           </div>
         </div>
       </div>
+      <Toaster />
     </Layout>
   );
 };
