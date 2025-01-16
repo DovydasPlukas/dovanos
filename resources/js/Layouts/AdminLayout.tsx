@@ -2,7 +2,7 @@ import React, { useState, PropsWithChildren, useEffect } from 'react';
 import { ArrowRightFromLine, ArrowLeftFromLine, LayoutDashboard, Users, Package, Settings, Gift, Menu, FileText } from 'lucide-react';
 import { AdminNavbar } from '@/Components/MyComponents/AdminNavbar';
 import { Link, usePage, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 
 interface AdminLayoutProps extends PropsWithChildren<{}> {
   initialTab?: string;

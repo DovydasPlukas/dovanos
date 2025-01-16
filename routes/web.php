@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// TODO: modify routes to send data through Inertia (don't show inside div with inspect element)
-
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -88,8 +86,8 @@ Route::get('/edit', function () {
 Route::get('/api/search', [ItemController::class, 'search']);
 
 
-//API routes
-// To test out API (delete later)
+// API route
+// To test out API using Postman
 Route::middleware('auth:sanctum')->get('/api/user', function (Request $request) {
     return response()->json($request->user());
 });

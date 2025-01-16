@@ -9,13 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/Components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
 import { AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/Components/ui/tooltip';
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 

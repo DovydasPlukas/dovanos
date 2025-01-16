@@ -1,6 +1,6 @@
 import React from 'react';
 import Layout from '@/Layouts/Layout';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { Head, Link } from '@inertiajs/react';
 import { Cake, TreePine, Heart, Home, Torus } from 'lucide-react'; 
 

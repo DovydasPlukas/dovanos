@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/Components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
   Command,

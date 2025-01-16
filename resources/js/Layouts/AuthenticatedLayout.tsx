@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
 import Layout from './Layout'; // General layout
 import AdminLayout from './AdminLayout'; // Admin-specific layout
@@ -9,7 +9,10 @@ interface User {
   name: string;
 }
 
-export default function AuthenticatedLayout({ children }: PropsWithChildren<{}>) {
+export default function AuthenticatedLayout({
+  children,
+  header,
+}: PropsWithChildren<{ header?: ReactNode }>) {
   const { user } = usePage().props; // Get the user object passed from the backend
 
   // Type assertion to tell TypeScript that user is of type User

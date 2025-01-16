@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import Layout from '@/Layouts/Layout';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/Components/ui/button';
 import { Pagination } from '@/Components/ui/pagination';
 import { X } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
