@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import ItemsCrud from '@/Components/MyComponents/CRUD/ItemCRUD';
 import VendorsCrud from '@/Components/MyComponents/CRUD/VendorsCRUD';
 import XML from '@/Components/MyComponents/CRUD/XML';
+import EditPage from '@/Components/MyComponents/EditPage';
 
 interface DashboardProps {
   initialTab?: string;
@@ -22,8 +23,10 @@ export default function Dashboard({ initialTab = 'dashboard' }: DashboardProps) 
         return <ItemsCrud />;
       case 'vendors':
         return <VendorsCrud />;
-        case 'xml':
-          return <XML />;
+      case 'xml':
+        return <XML />;
+      case 'edit-page':
+        return <EditPage />;
       default:
         return (
           <div className="text-center">

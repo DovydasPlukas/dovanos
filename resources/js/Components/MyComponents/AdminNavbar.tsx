@@ -18,7 +18,7 @@ const sidebarItems = [
   { name: 'Items', icon: Package, href: '/dashboard?tab=items' },
   { name: 'Vendors', icon: Users, href: '/dashboard?tab=vendors' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
-  { name: 'Edit Page', icon: Settings, href: '/edit-page' },
+  { name: 'Edit Page', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
 
 interface AdminNavbarProps {
@@ -27,6 +27,10 @@ interface AdminNavbarProps {
 }
 
 export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
+  const isActive = (itemName: string) => {
+    return activeTab === itemName.toLowerCase().replace(' ', '-');
+  };
+
   return (
     <SidebarProvider>
       <div className="flex h-screen">
@@ -48,11 +52,11 @@ export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
                     <Link
                       href={item.href}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
-                        activeTab === item.name.toLowerCase()
-                          ? 'bg-primary text-white hover:bg-gray-950 hover:text-white'
+                        isActive(item.name)
+                          ? 'bg-primary text-white hover:bg-primary hover:text-white'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
-                      onClick={() => setActiveTab(item.name.toLowerCase())}
+                      onClick={() => setActiveTab(item.name.toLowerCase().replace(' ', '-'))}
                     >
                       <item.icon className="size-4" />
                       <span>{item.name}</span>

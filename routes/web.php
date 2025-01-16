@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FeaturedItemController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorController;
@@ -62,6 +63,13 @@ Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
 // Vendor routes
 Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
     Route::resource('vendors', VendorController::class);
+});
+
+// Featured Items routes
+Route::middleware(['auth:sanctum', 'throttle:100,1'])->group(function () {
+    Route::get('/featured-items', [FeaturedItemController::class, 'index']);
+    Route::post('/featured-items', [FeaturedItemController::class, 'store']);
+    Route::delete('/featured-items/{id}', [FeaturedItemController::class, 'destroy']);
 });
 
 // Wishlist routes

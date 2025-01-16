@@ -14,7 +14,7 @@ const sidebarItems = [
   { name: 'Items', icon: Package, href: '/dashboard?tab=items' },
   { name: 'Vendors', icon: Users, href: '/dashboard?tab=vendors' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
-  { name: 'Edit Page', icon: Settings, href: '/edit-page' },
+  { name: 'Edit Page', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
 
 function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (tab: string) => void }) {
