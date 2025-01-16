@@ -51,7 +51,7 @@ function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveT
                   key={item.name}
                   href={item.href}
                   className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 ${
-                    activeTab === item.name.toLowerCase() ? 'bg-primary text-white' : ''
+                    activeTab === (item.name === 'Edit Page' ? 'edit-page' : item.name.toLowerCase()) ? 'bg-primary text-white' : ''
                   }`}
                   onClick={() => {
                     setActiveTab(item.name.toLowerCase());

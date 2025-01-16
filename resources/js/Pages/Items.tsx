@@ -134,7 +134,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
     };
 
     return (
-      <div className={`${showFilters ? 'block' : 'hidden'} md:block bg-white p-4 md:w-1/4 md:static fixed inset-0 z-40 md:z-30 overflow-y-auto`}>
+      <div className={`${showFilters ? 'block' : 'hidden'} md:block bg-white p-4 md:w-1/4 md:static fixed inset-0 z-40 md:z-30 mt-12 overflow-y-auto`}>
         <div className="flex justify-between items-center mb-4 md:hidden">
           <h2 className="text-lg font-semibold">Filtrai</h2>
           <Button onClick={() => setShowFilters(false)} variant="ghost" size="icon">

@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/Components/ui/calendar";
 import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/Components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover";
+import { useReactTable, getCoreRowModel, ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { DataTable } from "@/Components/MyComponents/DataTable";
 
 interface Vendor {
   id: number;
@@ -26,7 +29,7 @@ interface FeaturedItem {
   id: number;
   item_id: number;
   name: string;
-  vendor_name: string;  // Add this line
+  vendor_name: string;
   start_date: string;
   end_date: string;
 }
@@ -38,8 +41,10 @@ export default function EditPage() {
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [openVendor, setOpenVendor] = useState(false);
   const [openItem, setOpenItem] = useState(false);
 
@@ -113,13 +118,13 @@ export default function EditPage() {
     try {
       await axios.post('/featured-items', {
         item_id: selectedItem.id,
-        start_date: startDate,
-        end_date: endDate,
+        start_date: format(startDate, 'yyyy-MM-dd'),
+        end_date: format(endDate, 'yyyy-MM-dd'),
       });
       fetchFeaturedItems();
       setSelectedItem(null);
-      setStartDate('');
-      setEndDate('');
+      setStartDate(undefined);
+      setEndDate(undefined);
       toast({
         description: "Featured item added successfully",
       });
@@ -148,149 +153,204 @@ export default function EditPage() {
     }
   };
 
+  const columns: ColumnDef<FeaturedItem>[] = [
+    {
+      accessorKey: "item_id",
+      header: "Item ID",
+      id: "Item ID",
+    },
+    {
+      accessorKey: "name",
+      header: "Item Name",
+      id: "Item Name",
+    },
+    {
+      accessorKey: "vendor_name",
+      header: "Vendor",
+      id: "Vendor Name",
+    },
+    {
+      accessorKey: "start_date",
+      header: "Start Date",
+      id: "Start Date",
+    },
+    {
+      accessorKey: "end_date",
+      header: "End Date",
+      id: "End Date",
+    },
+    {
+      id: "Actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <Button 
+          variant="destructive" 
+          onClick={() => handleRemoveFeaturedItem(row.original.id)}
+          className="w-full md:w-auto"
+        >
+          Remove
+        </Button>
+      ),
+    },
+  ]
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 space-y-6">
       <h1 className="text-2xl font-bold mb-4">Edit Featured Items</h1>
       
-      <div className="mb-4">
-        <Label htmlFor="vendor-select">Select Vendor</Label>
-        <Popover open={openVendor} onOpenChange={setOpenVendor}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openVendor}
-              className="w-full justify-between"
-            >
-              {selectedVendor ? selectedVendor.name : "Select vendor..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search vendor..." />
-              <CommandList>
-                <CommandEmpty>No vendor found.</CommandEmpty>
-                <CommandGroup>
-                  {vendors.map((vendor) => (
-                    <CommandItem
-                      key={vendor.id}
-                      onSelect={() => {
-                        handleVendorSelect(vendor);
-                        setOpenVendor(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedVendor?.id === vendor.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {vendor.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Vendor Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="vendor-select">Select Vendor</Label>
+          <Popover open={openVendor} onOpenChange={setOpenVendor}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openVendor}
+                className="w-full justify-between"
+              >
+                {selectedVendor ? selectedVendor.name : "Select vendor..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search vendor..." />
+                <CommandList>
+                  <CommandEmpty>No vendor found.</CommandEmpty>
+                  <CommandGroup>
+                    {vendors.map((vendor) => (
+                      <CommandItem
+                        key={vendor.id}
+                        onSelect={() => {
+                          handleVendorSelect(vendor);
+                          setOpenVendor(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedVendor?.id === vendor.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {vendor.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Item Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="item-select">Select Item</Label>
+          <Popover open={openItem} onOpenChange={setOpenItem}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={openItem}
+                className="w-full justify-between"
+                disabled={!selectedVendor}
+              >
+                {selectedItem ? `${selectedItem.id} - ${selectedItem.name}` : "Select item..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <Command>
+                <CommandInput placeholder="Search item..." />
+                <CommandList>
+                  <CommandEmpty>No item found.</CommandEmpty>
+                  <CommandGroup>
+                    {items.map((item) => (
+                      <CommandItem
+                        key={item.id}
+                        onSelect={() => {
+                          setSelectedItem(item);
+                          setOpenItem(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedItem?.id === item.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {`${item.id} - ${item.name}`}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Date Selection */}
+        <div className="space-y-2">
+          <Label>Start Date</Label>
+          <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => {
+                  setStartDate(date);
+                  setStartDateOpen(false);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="space-y-2">
+          <Label>End Date</Label>
+          <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => {
+                  setEndDate(date);
+                  setEndDateOpen(false);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
-      <div className="mb-4">
-        <Label htmlFor="item-select">Select Item</Label>
-        <Popover open={openItem} onOpenChange={setOpenItem}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={openItem}
-              className="w-full justify-between"
-              disabled={!selectedVendor}
-            >
-              {selectedItem ? `${selectedItem.id} - ${selectedItem.name}` : "Select item..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <Command>
-              <CommandInput placeholder="Search item..." />
-              <CommandList>
-                <CommandEmpty>No item found.</CommandEmpty>
-                <CommandGroup>
-                  {items.map((item) => (
-                    <CommandItem
-                      key={item.id}
-                      onSelect={() => {
-                        setSelectedItem(item);
-                        setOpenItem(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          selectedItem?.id === item.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {`${item.id} - ${item.name}`}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+      <Button onClick={handleAddFeaturedItem} className="w-full md:w-auto">
+        Add Featured Item
+      </Button>
+
+      <div className="overflow-x-auto">
+        <DataTable columns={columns} data={featuredItems} />
       </div>
-
-      <div className="mb-4">
-        <Label htmlFor="start-date">Start Date</Label>
-        <Input
-          id="start-date"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <Label htmlFor="end-date">End Date</Label>
-        <Input
-          id="end-date"
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-      </div>
-
-      <Button onClick={handleAddFeaturedItem}>Add Featured Item</Button>
-
-      <Table className="mt-8">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Item ID</TableHead>
-            <TableHead>Item Name</TableHead>
-            <TableHead>Vendor</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
-            <TableHead>Action</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {featuredItems.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.item_id}</TableCell>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.vendor_name}</TableCell>
-              <TableCell>{item.start_date}</TableCell>
-              <TableCell>{item.end_date}</TableCell>
-              <TableCell>
-                <Button variant="destructive" onClick={() => handleRemoveFeaturedItem(item.id)}>
-                  Remove
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
       <Toaster />
     </div>
   );
