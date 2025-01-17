@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, Users, Package, Settings, Gift, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, Package, Settings, Gift, FileText, ListTree } from 'lucide-react';
 
 import {
   Sidebar,
@@ -17,6 +17,7 @@ const sidebarItems = [
   { name: 'Skydelis', icon: LayoutDashboard, href: '/dashboard' },
   { name: 'Prekės', icon: Package, href: '/dashboard?tab=items' },
   { name: 'Pardavėjai', icon: Users, href: '/dashboard?tab=vendors' },
+  { name: 'Atributai', icon: ListTree, href: '/dashboard?tab=attributes' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
   { name: 'Iškeltos prekės', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
@@ -34,6 +35,7 @@ export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
       'Skydelis': 'dashboard',
       'Iškeltos prekės': 'edit-page',
       'XML': 'xml',
+      'Atributai': 'attributes',
     };
     return activeTab === (tabMap[itemName] || itemName.toLowerCase());
   };

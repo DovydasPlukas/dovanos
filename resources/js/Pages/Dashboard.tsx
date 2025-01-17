@@ -5,6 +5,7 @@ import ItemsCrud from '@/Components/MyComponents/CRUD/ItemCRUD';
 import VendorsCrud from '@/Components/MyComponents/CRUD/VendorsCRUD';
 import XML from '@/Components/MyComponents/CRUD/XML';
 import EditPage from '@/Components/MyComponents/EditPage';
+import Attributes from '@/Components/MyComponents/CRUD/Attributes';
 
 interface DashboardProps {
   initialTab?: string;
@@ -30,6 +31,9 @@ export default function Dashboard({ initialTab = 'dashboard' }: DashboardProps) 
       case 'edit-page':
       case 'redaguoti':
         return <EditPage />;
+      case 'attributes':
+      case 'atributai':
+        return <Attributes />;
       default:
         return (
           <div className="text-center">

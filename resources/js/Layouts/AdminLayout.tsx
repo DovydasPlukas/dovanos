@@ -1,5 +1,5 @@
 import React, { useState, PropsWithChildren, useEffect } from 'react';
-import { ArrowRightFromLine, ArrowLeftFromLine, LayoutDashboard, Users, Package, Settings, Gift, Menu, FileText } from 'lucide-react';
+import { ArrowRightFromLine, ArrowLeftFromLine, LayoutDashboard, Users, Package, Settings, Gift, Menu, FileText, ListTree } from 'lucide-react';
 import { AdminNavbar } from '@/Components/MyComponents/AdminNavbar';
 import { Link, usePage, router } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
@@ -13,6 +13,7 @@ const sidebarItems = [
   { name: 'Skydelis', icon: LayoutDashboard, href: '/dashboard' },
   { name: 'Prekės', icon: Package, href: '/dashboard?tab=items' },
   { name: 'Pardavėjai', icon: Users, href: '/dashboard?tab=vendors' },
+  { name: 'Atributai', icon: ListTree, href: '/dashboard?tab=attributes' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
   { name: 'Iškeltos prekės', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
@@ -23,7 +24,8 @@ const tabMap: { [key: string]: string } = {
   'Skydelis': 'dashboard',
   'Iškeltos prekės': 'edit-page',
   'XML': 'xml',
-  'Pradžia': 'home'
+  'Pradžia': 'home',
+  'Atributai': 'attributes',
 };
 
 function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (tab: string) => void }) {

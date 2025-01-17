@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\XMLController;
+use App\Http\Controllers\AttributeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -70,6 +71,22 @@ Route::middleware(['auth:sanctum', 'throttle:admin'])->group(function () {
 
     // XML upload
     Route::post('/upload-xml', [XMLController::class, 'uploadXML']);
+
+    // Attribute management
+    Route::prefix('api/attributes')->group(function () {
+        // Attribute Groups
+        Route::get('/groups', [AttributeController::class, 'getAllGroups']);
+        Route::post('/groups', [AttributeController::class, 'createGroup']);
+        Route::put('/groups/{id}', [AttributeController::class, 'updateGroup']);
+        Route::delete('/groups/{id}', [AttributeController::class, 'deleteGroup']);
+        
+        // Attributes
+        Route::get('/', [AttributeController::class, 'getAllAttributes']);
+        Route::get('/group/{groupId}', [AttributeController::class, 'getAttributesByGroup']);
+        Route::post('/', [AttributeController::class, 'createAttribute']);
+        Route::put('/{id}', [AttributeController::class, 'updateAttribute']);
+        Route::delete('/{id}', [AttributeController::class, 'deleteAttribute']);
+    });
 });
 
 // Static pages
