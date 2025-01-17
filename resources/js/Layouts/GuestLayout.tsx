@@ -1,7 +1,11 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 import { Gift } from 'lucide-react';
 import { PropsWithChildren } from 'react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/Components/ui/card";
 
 export default function Guest({ children }: PropsWithChildren) {
     return (
@@ -13,9 +17,11 @@ export default function Guest({ children }: PropsWithChildren) {
                 </Link>
             </div>
 
-            <div className="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg">
-                {children}
-            </div>
+            <Card className="mt-6 w-full sm:max-w-md">
+                <CardContent className="p-6">
+                    {children}
+                </CardContent>
+            </Card>
         </div>
     );
 }

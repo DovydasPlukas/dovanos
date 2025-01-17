@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', 'throttle:admin'])->group(function () {
     // Featured Items management
     Route::post('/featured-items', [FeaturedItemController::class, 'store']);
     Route::delete('/featured-items/{id}', [FeaturedItemController::class, 'destroy']);
+    Route::post('/featured-items/reorder', [FeaturedItemController::class, 'reorder']);
 
     // XML upload
     Route::post('/upload-xml', [XMLController::class, 'uploadXML']);

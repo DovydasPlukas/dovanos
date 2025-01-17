@@ -45,6 +45,25 @@ class FeaturedItemController extends Controller
         }
     }
 
+    public function reorder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:featured_items,id',
+            'direction' => 'required|in:up,down',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $this->featuredItemService->reorderFeaturedItem($request->all());
+            return response()->json(['message' => 'Position updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
+    }
+
     public function destroy($id)
     {
         try {

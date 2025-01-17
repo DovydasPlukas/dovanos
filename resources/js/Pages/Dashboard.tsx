@@ -20,18 +20,21 @@ export default function Dashboard({ initialTab = 'dashboard' }: DashboardProps) 
   const renderContent = () => {
     switch (activeTab) {
       case 'items':
+      case 'prekes':
         return <ItemsCrud />;
       case 'vendors':
+      case 'pardavejai':
         return <VendorsCrud />;
       case 'xml':
         return <XML />;
       case 'edit-page':
+      case 'redaguoti':
         return <EditPage />;
       default:
         return (
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Welcome to the Admin Dashboard</h2>
-            <p>Select a tab from the sidebar to manage items or vendors.</p>
+            <h2 className="text-2xl font-bold mb-4">Sveiki atvykę į administratoriaus skydelį</h2>
+            <p>Pasirinkite skiltį iš šoninio meniu prekių ar pardavėjų valdymui.</p>
           </div>
         );
     }
@@ -39,7 +42,7 @@ export default function Dashboard({ initialTab = 'dashboard' }: DashboardProps) 
 
   return (
     <AuthenticatedLayout>
-      <Head title="Dashboard" />
+      <Head title="Administratoriaus skydelis" />
       <div className="py-12">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">

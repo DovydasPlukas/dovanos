@@ -1,8 +1,8 @@
-import Checkbox from '@/Components/Checkbox';
+import { Input } from "@/Components/ui/input";
+import { Button } from "@/Components/ui/button";
+import { Checkbox } from "@/Components/ui/checkbox";
+import { Label } from "@/Components/ui/label";
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -30,90 +30,78 @@ export default function Login({
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Prisijungimas" />
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
+            <div className="space-y-6">
+                {status && (
+                    <div className="text-sm font-medium text-green-600">
+                        {status}
+                    </div>
+                )}
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                <form onSubmit={submit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="email">El. paštas</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            name="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                        />
+                        <InputError message={errors.email} />
+                    </div>
 
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
+                    <div className="space-y-2">
+                        <Label htmlFor="password">Slaptažodis</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            name="password"
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                        />
+                        <InputError message={errors.password} />
+                    </div>
 
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4 block">
-                    <label className="flex items-center">
+                    <div className="flex items-center space-x-2">
                         <Checkbox
-                            name="remember"
+                            id="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
+                            onCheckedChange={(checked) => 
+                                setData('remember', checked === true)
                             }
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
+                        <Label htmlFor="remember">Prisiminti mane</Label>
+                    </div>
 
-                <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
+                    <div className="flex items-center justify-end gap-4">
+                        {canResetPassword && (
+                            <Link
+                                href={route('password.request')}
+                                className="text-sm text-gray-600 hover:text-gray-900"
+                            >
+                                Pamiršote slaptažodį?
+                            </Link>
+                        )}
+
+                        <Button disabled={processing}>
+                            Prisijungti
+                        </Button>
+                    </div>
+                </form>
+
+                <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                        Neturite paskyros?{" "}
                         <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            href="/register"
+                            className="text-primary hover:underline"
                         >
-                            Forgot your password?
+                            Registruotis
                         </Link>
-                    )}
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
+                    </p>
                 </div>
-            </form>
-
-            {/* Not Registered Link */}
-            <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                    Not registered?{" "}
-                    <Link
-                        href="/register"
-                        className="text-indigo-600 hover:underline"
-                    >
-                        Register
-                    </Link>
-                </p>
             </div>
         </GuestLayout>
     );

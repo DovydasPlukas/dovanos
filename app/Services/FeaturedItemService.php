@@ -40,4 +40,28 @@ class FeaturedItemService
 
         return $this->featuredItemRepository->delete($id);
     }
+
+    public function reorderFeaturedItem(array $data)
+    {
+        if (!Auth::user()?->is_admin) {
+            throw new \Exception('Unauthorized', 403);
+        }
+
+        $featuredItem = $this->featuredItemRepository->findOrFail($data['id']);
+        $items = $this->featuredItemRepository->getAllOrderedByPosition();
+        
+        $currentIndex = $items->search(function($item) use ($featuredItem) {
+            return $item->id === $featuredItem->id;
+        });
+
+        if ($data['direction'] === 'up' && $currentIndex > 0) {
+            $swapItem = $items[$currentIndex - 1];
+        } elseif ($data['direction'] === 'down' && $currentIndex < $items->count() - 1) {
+            $swapItem = $items[$currentIndex + 1];
+        } else {
+            throw new \Exception('Cannot move item in that direction', 422);
+        }
+
+        return $this->featuredItemRepository->swapPositions($featuredItem, $swapItem);
+    }
 }

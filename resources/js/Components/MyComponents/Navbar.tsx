@@ -91,13 +91,13 @@ export default function Navbar() {
                   </HoverCardTrigger>
                   <HoverCardContent className="p-4 bg-white border shadow-lg rounded-lg w-48">
                     <div className="text-sm text-gray-700">
-                      Email: {user.email}
+                      El. paštas: {user.email}
                     </div>
                     <button
                       onClick={handleLogout}
                       className="mt-2 w-full py-2 text-sm bg-black text-white hover:bg-gray-300 hover:text-black rounded-lg"
                     >
-                      Logout
+                      Atsijungti
                     </button>
                   </HoverCardContent>
                 </HoverCard>

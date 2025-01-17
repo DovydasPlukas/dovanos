@@ -6,6 +6,8 @@ import { Pagination } from '@/Components/ui/pagination';
 import { X } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
+import { Checkbox } from "@/Components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
 
 // Lazy load Dovana component
 const LazyDovana = lazy(() => import('@/Components/MyComponents/Dovana'));
@@ -49,6 +51,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const { toast } = useToast();
+  const [itemsPerPageOption, setItemsPerPageOption] = useState<number>(20);
 
   const occasions = ["Kalėdos", "Gimtadienis", "Tėvo diena", "Mamos diena", "Santuoka"];
 
@@ -102,13 +105,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
     return occasionFilter && priceFilter && searchFilter;
   });
 
-  const getItemsPerPage = () => {
-    const width = window.innerWidth;
-    if (width >= 1440) return 60; // 12 rows of 5 items
-    if (width >= 800) return 48; // 12 rows of 4 items
-    if (width >= 425) return 30; // 15 rows of 2 items
-    return 30; // 30 rows of 1 item for smaller screens
-  };
+  const getItemsPerPage = () => itemsPerPageOption;
 
   const itemsPerPage = getItemsPerPage();
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -134,7 +131,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
     };
 
     return (
-      <div className={`${showFilters ? 'block' : 'hidden'} md:block bg-white p-4 md:w-1/4 md:static fixed inset-0 z-40 md:z-30 mt-12 overflow-y-auto`}>
+      <div className={`${showFilters ? 'block' : 'hidden'} md:block bg-white p-4 md:w-1/4 md:static fixed inset-0 z-40 md:z-30 mt-20 overflow-y-auto`}>
         <div className="flex justify-between items-center mb-4 md:hidden">
           <h2 className="text-lg font-semibold">Filtrai</h2>
           <Button onClick={() => setShowFilters(false)} variant="ghost" size="icon">
@@ -143,7 +140,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
         </div>
 
         <div className="mb-4">
-          <label className="block mb-2">Ieškoti pagal pavadinimą</label>
+          <h3 className="font-semibold mb-2">Ieškoti pagal pavadinimą</h3>
           <input
             type="text"
             value={searchValue}
@@ -153,26 +150,30 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 space-y-2">
           <h3 className="font-semibold mb-2">Proga</h3>
           {occasions.map(occasion => (
-            <label key={occasion} className="flex items-center mb-2">
-              <input
-                type="checkbox"
+            <div key={occasion} className="flex items-center space-x-2">
+              <Checkbox
+                id={occasion}
                 checked={localOccasions.has(occasion)}
-                onChange={(e) => {
+                onCheckedChange={(checked) => {
                   const newOccasions = new Set(localOccasions);
-                  if (e.target.checked) {
+                  if (checked) {
                     newOccasions.add(occasion);
                   } else {
                     newOccasions.delete(occasion);
                   }
                   setLocalOccasions(newOccasions);
                 }}
-                className="mr-2"
               />
-              {occasion}
-            </label>
+              <label
+                htmlFor={occasion}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {occasion}
+              </label>
+            </div>
           ))}
         </div>
 
@@ -264,14 +265,38 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
         </div>
         {showFilters && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+            className="fixed inset-0 bg-white bg-opacity-50 z-40 md:hidden"
             onClick={() => setShowFilters(false)}
           ></div>
         )}
         <div className="flex flex-col md:flex-row">
           <FilterSection />
           <div className="md:w-3/4 p-4">
-            <h1 className="text-2xl font-bold mb-4">Dovanos</h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold">Dovanos</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">
+                  Rodyti po:
+                </span>
+                <Select
+                  value={itemsPerPageOption.toString()}
+                  onValueChange={(value) => {
+                    setItemsPerPageOption(Number(value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue placeholder="20" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="40">40</SelectItem>
+                    <SelectItem value="60">60</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <FilterBadges />
             {loading ? (
               <p>Kraunasi...</p>
@@ -284,7 +309,7 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
                     paginatedItems.map(renderDovana)
                   )}
                 </div>
-                <div className="mt-8 pt-4 border-t">
+                <div className="mt-8 pt-4 border-t flex items-center justify-end">
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

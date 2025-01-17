@@ -9,19 +9,32 @@ interface AdminLayoutProps extends PropsWithChildren<{}> {
 }
 
 const sidebarItems = [
-  { name: 'Index', icon: Gift, href: '/' },
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { name: 'Items', icon: Package, href: '/dashboard?tab=items' },
-  { name: 'Vendors', icon: Users, href: '/dashboard?tab=vendors' },
+  { name: 'Pradžia', icon: Gift, href: '/' },
+  { name: 'Skydelis', icon: LayoutDashboard, href: '/dashboard' },
+  { name: 'Prekės', icon: Package, href: '/dashboard?tab=items' },
+  { name: 'Pardavėjai', icon: Users, href: '/dashboard?tab=vendors' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
-  { name: 'Edit Page', icon: Settings, href: '/dashboard?tab=edit-page' },
+  { name: 'Iškeltos prekės', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
+
+const tabMap: { [key: string]: string } = {
+  'Prekės': 'items',
+  'Pardavėjai': 'vendors',
+  'Skydelis': 'dashboard',
+  'Iškeltos prekės': 'edit-page',
+  'XML': 'xml',
+  'Pradžia': 'home'
+};
 
 function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (tab: string) => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen((prev) => !prev);
+  };
+
+  const isActive = (itemName: string) => {
+    return activeTab === (tabMap[itemName] || itemName.toLowerCase());
   };
 
   return (
@@ -43,7 +56,7 @@ function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveT
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4">
-              <h2 className="font-semibold text-lg">Admin Panel</h2>
+              <h2 className="font-semibold text-lg">Administratoriaus skydelis</h2>
             </div>
             <nav>
               {sidebarItems.map((item) => (
@@ -51,10 +64,10 @@ function MobileMenu({ activeTab, setActiveTab }: { activeTab: string; setActiveT
                   key={item.name}
                   href={item.href}
                   className={`px-4 py-2 hover:bg-gray-100 flex items-center gap-2 ${
-                    activeTab === (item.name === 'Edit Page' ? 'edit-page' : item.name.toLowerCase()) ? 'bg-primary text-white' : ''
+                    isActive(item.name) ? 'bg-primary text-white' : ''
                   }`}
                   onClick={() => {
-                    setActiveTab(item.name.toLowerCase());
+                    setActiveTab(tabMap[item.name] || item.name.toLowerCase());
                     toggleMobileMenu();
                   }}
                 >

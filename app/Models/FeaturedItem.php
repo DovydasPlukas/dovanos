@@ -9,7 +9,7 @@ class FeaturedItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['item_id', 'start_date', 'end_date'];
+    protected $fillable = ['item_id', 'start_date', 'end_date', 'position'];
 
     protected $casts = [
         'start_date' => 'date',

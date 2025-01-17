@@ -4,7 +4,6 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
   VisibilityState,
 } from "@tanstack/react-table"
 import {
@@ -34,11 +33,28 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
+  // Add a mapping for column translations
+  const columnTranslations: { [key: string]: string } = {
+    id: "ID",
+    name: "Pavadinimas",
+    price: "Kaina",
+    description: "Aprašymas",
+    "contact_details": "Kontaktinė informacija",
+    website: "Svetainės adresas",
+    "vendor.name": "Pardavėjas",
+    "vendor_name": "Pardavėjas",
+    actions: "Veiksmai",
+    image_url: "Nuotrauka",
+    product_url: "Produkto nuoroda",
+    item_id: "Prekės ID",
+    start_date: "Pradžios data",
+    end_date: "Pabaigos data",
+  };
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     state: {
       columnVisibility,
@@ -51,7 +67,7 @@ export function DataTable<TData, TValue>({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns
+              Stulpeliai
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -65,7 +81,7 @@ export function DataTable<TData, TValue>({
                     column.toggleVisibility(!!checked)
                   }
                 >
-                  {column.id}
+                  {columnTranslations[column.id] || column.id}
                 </DropdownMenuCheckboxItem>
               )
             })}
@@ -78,18 +94,16 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -110,30 +124,12 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                  Rezultatų nerasta.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-      </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
       </div>
     </div>
   )

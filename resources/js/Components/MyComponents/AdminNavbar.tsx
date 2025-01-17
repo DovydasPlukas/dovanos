@@ -13,12 +13,12 @@ import {
 } from '@/Components/ui/sidebar';
 
 const sidebarItems = [
-  { name: 'Index', icon: Gift, href: '/' },
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { name: 'Items', icon: Package, href: '/dashboard?tab=items' },
-  { name: 'Vendors', icon: Users, href: '/dashboard?tab=vendors' },
+  { name: 'Pradžia', icon: Gift, href: '/' },
+  { name: 'Skydelis', icon: LayoutDashboard, href: '/dashboard' },
+  { name: 'Prekės', icon: Package, href: '/dashboard?tab=items' },
+  { name: 'Pardavėjai', icon: Users, href: '/dashboard?tab=vendors' },
   { name: 'XML', icon: FileText, href: '/dashboard?tab=xml' },
-  { name: 'Edit Page', icon: Settings, href: '/dashboard?tab=edit-page' },
+  { name: 'Iškeltos prekės', icon: Settings, href: '/dashboard?tab=edit-page' },
 ];
 
 interface AdminNavbarProps {
@@ -28,7 +28,14 @@ interface AdminNavbarProps {
 
 export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
   const isActive = (itemName: string) => {
-    return activeTab === itemName.toLowerCase().replace(' ', '-');
+    const tabMap: { [key: string]: string } = {
+      'Prekės': 'items',
+      'Pardavėjai': 'vendors',
+      'Skydelis': 'dashboard',
+      'Iškeltos prekės': 'edit-page',
+      'XML': 'xml',
+    };
+    return activeTab === (tabMap[itemName] || itemName.toLowerCase());
   };
 
   return (
@@ -39,7 +46,9 @@ export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton size="lg" asChild>
-                  <span className="font-semibold flex items-center gap-2">Admin Panel</span>
+                  <span className="font-semibold flex items-center gap-2">
+                    Administratoriaus skydelis
+                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -53,7 +62,7 @@ export function AdminNavbar({ activeTab, setActiveTab }: AdminNavbarProps) {
                       href={item.href}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
                         isActive(item.name)
-                          ? 'bg-primary text-white hover:bg-primary hover:text-white'
+                          ? 'bg-primary text-white hover:bg-primary/80 hover:text-white'
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => setActiveTab(item.name.toLowerCase().replace(' ', '-'))}

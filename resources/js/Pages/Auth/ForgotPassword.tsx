@@ -1,9 +1,10 @@
 import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { Input } from "@/Components/ui/input";
+import { Button } from "@/Components/ui/button";
 
 export default function ForgotPassword({ status }: { status?: string }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -18,12 +19,21 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title="Pamirštas slaptažodis" />
+
+            <div className="pb-4 pt-2">
+                <Link
+                    href={route('login')}
+                    className="inline-flex text-sm text-gray-600 hover:text-gray-900"
+                >
+                    <ArrowLeft className="h-4 w-4" />
+                </Link>
+            </div>
 
             <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email
-                address and we will email you a password reset link that will
-                allow you to choose a new one.
+                Pamiršote slaptažodį? Jokių problemų. Tiesiog įveskite savo el. pašto
+                adresą ir mes išsiųsime jums slaptažodžio atkūrimo nuorodą, kuri leis
+                jums pasirinkti naują slaptažodį.
             </div>
 
             {status && (
@@ -33,22 +43,21 @@ export default function ForgotPassword({ status }: { status?: string }) {
             )}
 
             <form onSubmit={submit}>
-                <TextInput
+                <Input
                     id="email"
                     type="email"
-                    name="email"
+                    placeholder="El. pašto adresas"
                     value={data.email}
-                    className="mt-1 block w-full"
-                    isFocused={true}
                     onChange={(e) => setData('email', e.target.value)}
+                    className="mt-1"
                 />
 
                 <InputError message={errors.email} className="mt-2" />
 
                 <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Email Password Reset Link
-                    </PrimaryButton>
+                    <Button disabled={processing}>
+                        Siųsti slaptažodžio atkūrimo nuorodą
+                    </Button>
                 </div>
             </form>
         </GuestLayout>

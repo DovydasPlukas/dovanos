@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/Components/ui/table';
 import { Button } from '@/Components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/Components/ui/dialog';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import {
@@ -21,6 +21,9 @@ import {
 import { Alert, AlertTitle, AlertDescription } from '@/Components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/Components/ui/toaster";
+import { DataTable } from "@/Components/MyComponents/DataTable";
+import { ColumnDef } from "@tanstack/react-table";
+import { RowsPerPageSelect } from "@/Components/MyComponents/RowsPerPageSelect";
 
 interface Item {
   id: number;
@@ -55,7 +58,7 @@ const ItemsCrud: React.FC = () => {
   const { toast } = useToast();
   const [items, setItems] = useState<Item[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 100;
+  const [itemsPerPage, setItemsPerPage] = useState<number>(50);
   const [newItem, setNewItem] = useState<ItemFormData>({
     name: '',
     description: '',
@@ -73,6 +76,7 @@ const ItemsCrud: React.FC = () => {
   const [alert, setAlert] = useState<{ type: 'added' | 'edited'; message: string } | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
   const fetchItems = async () => {
     try {
@@ -82,7 +86,7 @@ const ItemsCrud: React.FC = () => {
       console.error('Error fetching items:', error);
       toast({
         variant: "destructive",
-        description: "Failed to fetch items",
+        description: "Nepavyko gauti prekių sąrašo",
       });
     }
   };
@@ -130,20 +134,20 @@ const ItemsCrud: React.FC = () => {
       setErrors({});
       setIsAddDialogOpen(false);
       toast({
-        description: "Item added successfully",
+        description: "Prekė sėkmingai pridėta",
       });
     } catch (error: any) {
       if (error.response && error.response.data.errors) {
         setErrors(error.response.data.errors);
         toast({
           variant: "destructive",
-          description: "Please check the form for errors",
+          description: "Patikrinkite formos laukus",
         });
       } else {
         console.error('Error adding item:', error);
         toast({
           variant: "destructive",
-          description: "Failed to add item",
+          description: "Nepavyko pridėti prekės",
         });
       }
     }
@@ -178,40 +182,39 @@ const ItemsCrud: React.FC = () => {
       setErrors({});
       setIsEditDialogOpen(false);
       toast({
-        description: "Item updated successfully",
+        description: "Prekė sėkmingai atnaujinta",
       });
     } catch (error: any) {
       if (error.response && error.response.data.errors) {
         setErrors(error.response.data.errors);
         toast({
           variant: "destructive",
-          description: "Please check the form for errors",
+          description: "Patikrinkite formos laukus",
         });
       } else {
         console.error('Error updating item:', error);
         toast({
           variant: "destructive",
-          description: "Failed to update item",
+          description: "Nepavyko atnaujinti prekės",
         });
       }
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      try {
-        await axios.delete(`/items/${id}`);
-        fetchItems();
-        toast({
-          description: "Item deleted successfully",
-        });
-      } catch (error) {
-        console.error('Error deleting item:', error);
-        toast({
-          variant: "destructive",
-          description: "Failed to delete item",
-        });
-      }
+    try {
+      await axios.delete(`/items/${id}`);
+      fetchItems();
+      setItemToDelete(null);
+      toast({
+        description: "Prekė sėkmingai ištrinta",
+      });
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        variant: "destructive",
+        description: "Nepavyko ištrinti prekės",
+      });
     }
   };
 
@@ -237,37 +240,86 @@ const ItemsCrud: React.FC = () => {
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
+  const columns: ColumnDef<Item>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+    },
+    {
+      accessorKey: "name",
+      header: "Pavadinimas",
+    },
+    {
+      accessorKey: "price",
+      header: "Kaina",
+    },
+    {
+      accessorKey: "vendor.name",
+      header: "Pardavėjas",
+    },
+    {
+      accessorKey: "description",
+      header: "Aprašymas",
+    },
+    {
+      id: "actions",
+      header: "Veiksmai",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => handleEditClick(row.original)}>
+            Redaguoti
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => setItemToDelete(row.original.id)}
+          >
+            Ištrinti
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Items CRUD</h1>
+        <h1 className="text-2xl font-bold mb-4">Prekių valdymas</h1>
         
         {alert && (
           <Alert variant="default" className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-            <AlertTitle>{alert.type === 'added' ? 'Success' : 'Updated'}</AlertTitle>
+            <AlertTitle>{alert.type === 'added' ? 'Sėkmingai' : 'Atnaujinta'}</AlertTitle>
             <AlertDescription>{alert.message}</AlertDescription>
           </Alert>
         )}
 
         <Input
           type="text"
-          placeholder="Search by name or ID"
+          placeholder="Ieškoti pagal pavadinimą arba ID"
           value={searchTerm}
           onChange={onSearch}
           className="mb-4"
         />
 
+        <div className="flex justify-between items-center mb-4">
+          <Button onClick={() => setIsAddDialogOpen(true)}>Pridėti naują prekę</Button>
+          
+          <RowsPerPageSelect
+            value={itemsPerPage}
+            onChange={(value) => {
+              setItemsPerPage(value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="mb-4" onClick={() => setIsAddDialogOpen(true)}>Add New Item</Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Item</DialogTitle>
+              <DialogTitle>Pridėti naują prekę</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Pavadinimas</Label>
                 <Input
                   id="name"
                   value={newItem.name}
@@ -277,7 +329,7 @@ const ItemsCrud: React.FC = () => {
                 {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Aprašymas</Label>
                 <Input
                   id="description"
                   value={newItem.description}
@@ -287,7 +339,7 @@ const ItemsCrud: React.FC = () => {
                 {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="price">Price</Label>
+                <Label htmlFor="price">Kaina</Label>
                 <Input
                   id="price"
                   type="number"
@@ -298,18 +350,18 @@ const ItemsCrud: React.FC = () => {
                 {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="vendor_id">Vendor</Label>
+                <Label htmlFor="vendor_id">Pardavėjas</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full">
-                      {selectedVendor ? selectedVendor.name : 'Select Vendor'}
+                      {selectedVendor ? selectedVendor.name : 'Pasirinkti pardavėją'}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0">
                     <Command>
-                      <CommandInput placeholder="Search vendors..." />
+                      <CommandInput placeholder="Ieškoti pardavėjų..." />
                       <CommandList>
-                        <CommandEmpty>No vendors found.</CommandEmpty>
+                        <CommandEmpty>Pardavėjų nerasta.</CommandEmpty>
                         <CommandGroup>
                           {vendors.map((vendor) => (
                             <CommandItem
@@ -330,7 +382,7 @@ const ItemsCrud: React.FC = () => {
                 {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="product_url">Product URL</Label>
+                <Label htmlFor="product_url">Produkto URL</Label>
                 <Input
                   id="product_url"
                   value={newItem.product_url}
@@ -340,7 +392,7 @@ const ItemsCrud: React.FC = () => {
                 {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
               </div>
               <div>
-                <Label htmlFor="image">Image</Label>
+                <Label htmlFor="image">Nuotrauka</Label>
                 <div className="space-y-2">
                   <Input
                     id="image_file"
@@ -349,10 +401,10 @@ const ItemsCrud: React.FC = () => {
                     accept="image/*"
                   />
                   <div className="flex items-center">
-                    <span className="text-sm text-gray-500 px-2">OR</span>
+                    <span className="text-sm text-gray-500 px-2">ARBA</span>
                     <Input
                       id="image_url"
-                      placeholder="Enter image URL"
+                      placeholder="Įveskite nuotraukos URL"
                       value={newItem.image_url}
                       onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
                     />
@@ -360,40 +412,15 @@ const ItemsCrud: React.FC = () => {
                 </div>
                 {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
               </div>
-              <Button type="submit">Add Item</Button>
+              <Button type="submit">Pridėti prekę</Button>
             </form>
           </DialogContent>
         </Dialog>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Vendor</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedItems.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.price}</TableCell>
-                <TableCell>{item.vendor.name}</TableCell>
-                <TableCell>
-                  <Button variant="outline" className="mr-2" onClick={() => handleEditClick(item)}>
-                    Edit
-                  </Button>
-                  <Button variant="destructive" onClick={() => handleDelete(item.id)}>
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable 
+          columns={columns} 
+          data={paginatedItems}
+        />
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center space-x-2 py-4">
@@ -440,12 +467,12 @@ const ItemsCrud: React.FC = () => {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Item</DialogTitle>
+              <DialogTitle>Redaguoti prekę</DialogTitle>
             </DialogHeader>
             {editingItem && (
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div>
-                  <Label htmlFor="edit-name">Name</Label>
+                  <Label htmlFor="edit-name">Pavadinimas</Label>
                   <Input
                     id="edit-name"
                     value={editingItem.name}
@@ -455,7 +482,7 @@ const ItemsCrud: React.FC = () => {
                   {errors.name && <p className="text-red-500">{errors.name[0]}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="edit-description">Description</Label>
+                  <Label htmlFor="edit-description">Aprašymas</Label>
                   <Input
                     id="edit-description"
                     value={editingItem.description}
@@ -465,7 +492,7 @@ const ItemsCrud: React.FC = () => {
                   {errors.description && <p className="text-red-500">{errors.description[0]}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="edit-price">Price</Label>
+                  <Label htmlFor="edit-price">Kaina</Label>
                   <Input
                     id="edit-price"
                     type="number"
@@ -476,7 +503,7 @@ const ItemsCrud: React.FC = () => {
                   {errors.price && <p className="text-red-500">{errors.price[0]}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="edit-vendor_name">Vendor</Label>
+                  <Label htmlFor="edit-vendor_name">Pardavėjas</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full">
@@ -485,9 +512,9 @@ const ItemsCrud: React.FC = () => {
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
-                        <CommandInput placeholder="Search vendors..." />
+                        <CommandInput placeholder="Ieškoti pardavėjų..." />
                         <CommandList>
-                          <CommandEmpty>No vendors found.</CommandEmpty>
+                          <CommandEmpty>Pardavėjų nerasta.</CommandEmpty>
                           <CommandGroup>
                             {vendors.map((vendor) => (
                               <CommandItem
@@ -507,7 +534,7 @@ const ItemsCrud: React.FC = () => {
                   {errors.vendor_id && <p className="text-red-500">{errors.vendor_id[0]}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="edit-product_url">Product URL</Label>
+                  <Label htmlFor="edit-product_url">Produkto URL</Label>
                   <Input
                     id="edit-product_url"
                     value={editingItem.product_url}
@@ -517,7 +544,7 @@ const ItemsCrud: React.FC = () => {
                   {errors.product_url && <p className="text-red-500">{errors.product_url[0]}</p>}
                 </div>
                 <div>
-                  <Label htmlFor="edit-image">Image</Label>
+                  <Label htmlFor="edit-image">Nuotrauka</Label>
                   <div className="space-y-2">
                     <Input
                       id="edit-image-file"
@@ -526,10 +553,10 @@ const ItemsCrud: React.FC = () => {
                       accept="image/*"
                     />
                     <div className="flex items-center">
-                      <span className="text-sm text-gray-500 px-2">OR</span>
+                      <span className="text-sm text-gray-500 px-2">ARBA</span>
                       <Input
                         id="edit-image-url"
-                        placeholder="Enter image URL"
+                        placeholder="Įveskite nuotraukos URL"
                         defaultValue={editingItem.image_url}
                         onChange={(e) => setEditingItem({ ...editingItem, image_url: e.target.value })}
                       />
@@ -537,9 +564,34 @@ const ItemsCrud: React.FC = () => {
                   </div>
                   {errors.image_url && <p className="text-red-500">{errors.image_url[0]}</p>}
                 </div>
-                <Button type="submit">Update Item</Button>
+                <Button type="submit">Atnaujinti prekę</Button>
               </form>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ar tikrai norite ištrinti šią prekę?</DialogTitle>
+              <DialogDescription>
+                Šis veiksmas negrįžtamai ištrins prekę iš sistemos.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setItemToDelete(null)}
+              >
+                Atšaukti
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => itemToDelete && handleDelete(itemToDelete)}
+              >
+                Ištrinti
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
