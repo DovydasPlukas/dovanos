@@ -14,6 +14,7 @@ use App\Repositories\FeaturedItemRepository;
 use App\Repositories\WishlistRepository;
 use App\Repositories\AttributeRepository;
 use App\Repositories\AttributeGroupRepository;
+use App\Repositories\ItemAttributeRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -26,5 +27,6 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
         $this->app->bind(AttributeRepositoryInterface::class, AttributeRepository::class);
         $this->app->bind(AttributeGroupRepositoryInterface::class, AttributeGroupRepository::class);
+        $this->app->bind(ItemAttributeRepository::class, ItemAttributeRepository::class);
     }
 }

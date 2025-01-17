@@ -7,6 +7,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\XMLController;
 use App\Http\Controllers\AttributeController;
+use App\Http\Controllers\ItemAttributeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +88,11 @@ Route::middleware(['auth:sanctum', 'throttle:admin'])->group(function () {
         Route::put('/{id}', [AttributeController::class, 'updateAttribute']);
         Route::delete('/{id}', [AttributeController::class, 'deleteAttribute']);
     });
+
+    // Item Attributes management
+    Route::post('/item-attributes', [ItemAttributeController::class, 'store']);
+    Route::delete('/item-attributes/{id}', [ItemAttributeController::class, 'destroy']);
+    Route::get('/item-attributes/{itemId}', [ItemAttributeController::class, 'getItemAttributes']);
 });
 
 // Static pages

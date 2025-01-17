@@ -49,6 +49,7 @@ export function DataTable<TData, TValue>({
     item_id: "Prekės ID",
     start_date: "Pradžios data",
     end_date: "Pabaigos data",
+    "attribute_name": "Požymis",
   };
 
   const table = useReactTable({
