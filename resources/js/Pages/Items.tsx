@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import Layout from '@/Layouts/Layout';
 import { Button } from '@/Components/ui/button';
 import { Pagination } from '@/Components/ui/pagination';
@@ -36,14 +36,20 @@ interface Filters {
 const Items: React.FC<ItemsProps> = ({ items }) => {
   const { auth } = usePage().props as { auth: { user: any } };
   const [loading, setLoading] = useState<boolean>(true);
+  const initialOccasions = new Set<string>();
+  const occasion = new URLSearchParams(window.location.search).get('occasion');
+  if (occasion) {
+    initialOccasions.add(occasion);
+  }
+
   const [filters, setFilters] = useState<Filters>({
-    occasions: new Set<string>(),
+    occasions: initialOccasions,
     minPrice: '',
     maxPrice: '',
     searchQuery: ''
   });
   const [appliedFilters, setAppliedFilters] = useState<Filters>({
-    occasions: new Set<string>(),
+    occasions: initialOccasions,
     minPrice: '',
     maxPrice: '',
     searchQuery: ''
@@ -91,7 +97,11 @@ const Items: React.FC<ItemsProps> = ({ items }) => {
   const filteredItems = items.filter(item => {
     if (appliedFilters.occasions.size === 0 && appliedFilters.minPrice === '' && appliedFilters.maxPrice === '' && !appliedFilters.searchQuery) return true;
 
-    const occasionFilter = appliedFilters.occasions.size === 0 || [...appliedFilters.occasions].some(occasion => item.occasion?.includes(occasion));
+    // Update occasion filter to check item.occasion array
+    const occasionFilter = appliedFilters.occasions.size === 0 || 
+        [...appliedFilters.occasions].some(occasion => 
+            item.occasion && item.occasion.includes(occasion)
+        );
 
     const price = parseFloat(item.price);
     const priceFilter = 

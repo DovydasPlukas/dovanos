@@ -33,4 +33,9 @@ class Item extends Model
     {
         return $this->belongsToMany(User::class, 'wishlist');
     }
+
+    public function attributes()
+    {
+        return $this->belongsToMany(Attribute::class, 'item_attributes');
+    }
 }

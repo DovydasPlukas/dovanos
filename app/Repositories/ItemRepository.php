@@ -16,7 +16,7 @@ class ItemRepository implements ItemRepositoryInterface
 
     public function getAllItems()
     {
-        return $this->model->with('vendor')->get();
+        return $this->model->with(['vendor', 'attributes'])->get();
     }
 
     public function getItemById($id)

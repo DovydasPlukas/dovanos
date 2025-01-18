@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\Interfaces\ItemRepositoryInterface;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Item;
 
 class ItemService
 {
@@ -17,7 +18,12 @@ class ItemService
 
     public function getAllItems()
     {
-        return $this->itemRepository->getAllItems();
+        $items = $this->itemRepository->getAllItems();
+        return $items->map(function ($item) {
+            $itemData = $item->toArray();
+            $itemData['occasion'] = $item->attributes->pluck('name')->toArray();
+            return $itemData;
+        });
     }
 
     public function getItem($id)

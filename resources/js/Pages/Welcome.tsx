@@ -28,11 +28,11 @@ interface Props {
 }
 
 const occasions = [
-    { icon: <TreePine size={40} />, label: 'Kalėdos', link: '#' },
-    { icon: <Cake size={40} />, label: 'Gimtadienis', link: '#' },
-    { icon: <Home size={40} />, label: 'Tėvo diena', link: '#' },
-    { icon: <Heart size={40} />, label: 'Mamos diena', link: '#' },
-    { icon: <Torus size={40} />, label: 'Santuoka', link: '#' },
+    { icon: <TreePine size={40} />, label: 'Kalėdos', link: '/items?occasion=Kalėdos' },
+    { icon: <Cake size={40} />, label: 'Gimtadienis', link: '/items?occasion=Gimtadienis' },
+    { icon: <Home size={40} />, label: 'Tėvo diena', link: '/items?occasion=Tėvo diena' },
+    { icon: <Heart size={40} />, label: 'Mamos diena', link: '/items?occasion=Mamos diena' },
+    { icon: <Torus size={40} />, label: 'Santuoka', link: '/items?occasion=Santuoka' },
   ];
 
 const Welcome: React.FC<Props> = ({ auth }) => {
